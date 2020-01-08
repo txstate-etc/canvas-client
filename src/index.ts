@@ -1,10 +1,10 @@
-import Axios, { AxiosInstance, AxiosResponse } from 'axios'
+import Axios, { AxiosInstance } from 'axios'
 import flatten from 'lodash/flatten'
 import range from 'lodash/range'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType } from './interfaces'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID } from './interfaces'
 
 class CanvasConnector {
   private service: AxiosInstance
@@ -68,7 +68,7 @@ class CanvasConnector {
     return this.rateLimit(async () => {
       try {
         const res = await this.service.head(url)
-        return isHttpStatusOk(res)
+        return res.status >= 200 && res.status < 400
       } catch (e) {
         return false
       }
@@ -106,6 +106,9 @@ class CanvasAPI {
     return getConnector().head(url)
   }
 
+  // DEFAULTS
+  public defaultCourseTimeZone = 'America/Chicago'
+
   // ACCOUNTS
   public async getRootAccounts (): Promise<CanvasAccount[]> {
     return this.getall('/accounts')
@@ -140,6 +143,7 @@ class CanvasAPI {
   }
 
   public async createCourse (accountId: CanvasID, coursePayload: CanvasCoursePayload): Promise<CanvasCourse> {
+    if (!coursePayload.course.time_zone) coursePayload.course.time_zone = this.defaultCourseTimeZone
     return this.post(`/accounts/${accountId}/courses`, coursePayload)
   }
 
@@ -151,12 +155,12 @@ class CanvasAPI {
   }
 
   // SECTIONS
-  public async courseSections (courseId?: CanvasID) {
+  public async courseSections (courseId?: CanvasID): Promise<CanvasSection[]> {
     if (!courseId) return []
     return this.getall(`/courses/${courseId}/sections`)
   }
 
-  public async getSection (id: CanvasID|SpecialSectionID) {
+  public async getSection (id: CanvasID|SpecialSectionID): Promise<CanvasSection> {
     return this.get(`/sections/${id}`)
   }
 
@@ -164,14 +168,13 @@ class CanvasAPI {
     return this.getSection(`sis_section_id:${sisId}`)
   }
 
-  public async courseSectionsBatched (courseIds: CanvasID[]) {
+  public async courseSectionsBatched (courseIds: CanvasID[]): Promise<CanvasSection[]> {
     return Promise.all(courseIds.map(id => this.courseSections(id)))
       .then(flatten)
   }
 
   public async createSection (courseId: CanvasID, sectionPayload: CanvasSectionPayload): Promise<CanvasSection> {
-    const ret = await this.post(`/courses/${courseId}/sections`, sectionPayload)
-    return ret
+    return this.post(`/courses/${courseId}/sections`, sectionPayload)
   }
 
   public async createSections (courseId: CanvasID, sectionPayloads: CanvasSectionPayload[]): Promise<CanvasSection[]> {
@@ -218,6 +221,10 @@ class CanvasAPI {
   }
 
   // ENROLLMENTS
+  public async getCourseEnrollments (id: CanvasID|SpecialCourseID): Promise<CanvasEnrollment[]> {
+    return this.getall(`/courses/${id}/enrollments`)
+  }
+
   public async getSectionEnrollments (id: CanvasID|SpecialSectionID): Promise<CanvasEnrollment[]> {
     return this.getall(`/sections/${id}/enrollments`)
   }
@@ -226,17 +233,13 @@ class CanvasAPI {
     return this.getSectionEnrollments(`sis_section_id:${sisId}`)
   }
 
-  public async createInstructorEnrollment (courseId: CanvasID, enrollmentPayload: CanvasEnrollmentPayload) {
+  public async createEnrollment (courseId: CanvasID, enrollmentPayload: CanvasEnrollmentPayload) {
     return this.post(`/courses/${courseId}/enrollments`, enrollmentPayload)
   }
 
   public async deactivateEnrollmentFromSection (enrollment: CanvasEnrollment) {
     return this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'deactivate' })
   }
-}
-
-function isHttpStatusOk (res: AxiosResponse<any>) {
-  return res.status >= 200 && res.status < 400
 }
 
 export const canvasAPI = new CanvasAPI()

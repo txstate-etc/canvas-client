@@ -16,8 +16,11 @@
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
+    // special rules for this project
     "camelcase": "off",
     "@typescript-eslint/camelcase": "off",
+    "@typescript-eslint/no-empty-interface": "off",
+    // standard txstate rules
     "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-use-before-define": "off", // Allows us to hoist variables and functions which I am a fan of, functions not variables that is.
