@@ -1,6 +1,6 @@
 {
   "name": "canvas-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Typescript library to make accessing the Canvas API more convenient.",
   "main": "lib/index.js",
   "module": "lib-esm/index.js",
@@ -43,6 +43,7 @@
     "typescript": "^3.7.3"
   },
   "dependencies": {
+    "agentkeepalive": "4.1.0",
     "axios": "^0.19.0",
     "lodash": "^4.17.15",
     "p-limit": "^2.2.1",

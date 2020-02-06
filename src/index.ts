@@ -1,3 +1,4 @@
+import { HttpsAgent } from 'agentkeepalive'
 import Axios, { AxiosInstance } from 'axios'
 import flatten from 'lodash/flatten'
 import range from 'lodash/range'
@@ -15,6 +16,7 @@ class CanvasConnector {
     this.service = Axios.create({
       baseURL: canvasUrl + '/api/v1',
       timeout: 20000,
+      httpsAgent: new HttpsAgent({ maxSockets: 10 }),
       headers: {
         Authorization: 'Bearer ' + token,
         'Content-Type': 'application/json'
