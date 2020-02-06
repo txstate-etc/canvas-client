@@ -4,6 +4,10 @@
   "description": "Typescript library to make accessing the Canvas API more convenient.",
   "main": "lib/index.js",
   "module": "lib-esm/index.js",
+  "browser": {
+    "./lib/index.js": "./lib/browser.js",
+    "./lib-esm/index.js": "./lib-esm/browser.js"
+  },
   "types": "lib/index.d.ts",
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -50,7 +54,6 @@
     "parse-link-header": "^1.0.1",
     "qs": "^6.9.1"
   },
-  "sideEffects": false,
   "files": [
     "lib/**/*",
     "lib-esm/**/*"
