@@ -165,7 +165,7 @@ export class CanvasSectionNew {
 
 export interface CanvasSection extends CanvasSectionNew {
   id: CanvasID
-  course_id: CanvasID|SpecialCourseID
+  course_id: CanvasID
   created_at: Date
   nonxlist_course_id: any
   integration_id: string | null
