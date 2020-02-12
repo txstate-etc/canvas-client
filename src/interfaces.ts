@@ -3,6 +3,7 @@ export type SISUserID = string
 export type SISCourseID = string
 export type SISSectionID = string
 export type SISTermID = string
+export type SISTermId = string
 export type SpecialUserID = string // looks like "sis_user_id:A00123456"
 export type SpecialCourseID = string // looks like "sis_course_id:202010.HIST.1301"
 export type SpecialSectionID = string // looks like "sis_section_id:202010.12345"
@@ -26,6 +27,7 @@ export interface ICanvasCourseNew {
   self_enrollment?: boolean
   restrict_enrollments_to_course_dates?: boolean
   term_id?: CanvasID|SpecialTermID
+  locale?: string
   enrollment_term_id?: CanvasID|SpecialTermID
   sis_course_id?: SISCourseID | null
   integration_id?: string | null
@@ -44,6 +46,7 @@ export class CanvasCourseNew {
     this.name = course.name
     this.course_code = course.course_code
     this.term_id = course.term_id || course.enrollment_term_id
+    this.locale = course.locale
     this.sis_course_id = course.sis_course_id
     this.integration_id = course.integration_id
     this.license = course.license || 'private'
@@ -81,7 +84,6 @@ export class CanvasCourse extends CanvasCourseNew {
   account_id: CanvasID
   root_account_id: CanvasID
   created_at: Date
-  locale: string
   sis_import_id: CanvasID|null
   workflow_state: CanvasWorkflowState
   term_id: CanvasID
@@ -188,6 +190,11 @@ export enum CanvasEnrollmentShortType {
   designer = 'designer'
 }
 
+export enum CanvasEnrollmentTermsState {
+  Active = 'active',
+  Deleted = 'deleted'
+}
+
 export interface ICanvasEnrollmentNew {
   user_id: CanvasID|SpecialUserID
   type?: CanvasEnrollmentType
@@ -265,4 +272,46 @@ export interface CanvasGradingStandard {
   context_id: number
   context_type: string
   grading_scheme: CanvasGradeValue[]
+}
+
+export interface CanvasEnrollmentTermOverride {
+  start_at: Date | null
+  end_at: Date | null
+}
+
+export interface ICanvasEnrollmentTermNew {
+  name: string
+  start_at: Date
+  end_at: Date
+  sis_term_id?: string
+  overrides?: { [keys in CanvasEnrollmentType]: CanvasEnrollmentTermOverride }
+}
+
+export interface CanvasEnrollmentTermNew extends ICanvasEnrollmentTermNew {}
+
+export class CanvasEnrollmentTermNew {
+  constructor (enrollmentTerm: CanvasEnrollmentTermNew) {
+    this.name = enrollmentTerm.name
+    this.start_at = enrollmentTerm.start_at
+    this.end_at = enrollmentTerm.end_at
+    this.sis_term_id = enrollmentTerm.sis_term_id
+    this.overrides = enrollmentTerm.overrides
+  }
+}
+
+export interface CanvasEnrollmentTermPayload extends ICanvasEnrollmentTermNew {}
+
+export class CanvasEnrollmentTermPayload {
+  enrollmentTerm: CanvasEnrollmentTermNew
+
+  constructor (enrollmentTerm: ICanvasEnrollmentTermNew) {
+    this.enrollmentTerm = new CanvasEnrollmentTermNew(enrollmentTerm)
+  }
+}
+
+export interface CanvasEnrollmentTerm extends CanvasEnrollmentTermNew {
+  id: CanvasID
+  created_at: Date
+  workflow_state: CanvasEnrollmentTermsState
+  grading_period_group_id: number
 }

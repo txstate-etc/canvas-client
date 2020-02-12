@@ -5,7 +5,7 @@ import range from 'lodash/range'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID } from './interfaces'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm } from './interfaces'
 
 export class CanvasConnector {
   private service: AxiosInstance
@@ -254,5 +254,30 @@ export class CanvasAPI {
 
   public async deactivateEnrollmentFromSection (enrollment: CanvasEnrollment) {
     return this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'deactivate' })
+  }
+
+  public async deactivateAllEnrollmentsFromSectionsBySis (sisIds: SISSectionID[]) {
+    const enrollments = await Promise.all(sisIds.map(async (sisId) => {
+      return this.getSectionEnrollmentsBySIS(sisId)
+    }))
+
+    return Promise.all(flatten(enrollments).map(async (enrollment: CanvasEnrollment) => this.deactivateEnrollmentFromSection(enrollment)))
+  }
+
+  // TERM
+  public async getEnrollmentTerms (accountId: CanvasID): Promise<CanvasEnrollmentTerm[]> {
+    return this.get(`/accounts/${accountId}/terms`)
+  }
+
+  public async getEnrollmentTerm (accountId: CanvasID, termId: CanvasID | SpecialTermID): Promise<CanvasEnrollmentTerm> {
+    return this.get(`/accounts/${accountId}/terms/${termId}`)
+  }
+
+  public async getEnrollmentTermBySis (accountId: CanvasID, sisTermId: SISTermID): Promise<CanvasEnrollmentTerm> {
+    return this.getEnrollmentTerm(accountId, `sis_term_id:${sisTermId}`)
+  }
+
+  public async createEnrollmentTerm (accountId: CanvasID, enrollmentTermPayload: CanvasEnrollmentPayload) {
+    return this.post(`/accounts/${accountId}/terms`, enrollmentTermPayload)
   }
 }
