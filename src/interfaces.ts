@@ -90,6 +90,8 @@ export class CanvasCourse extends CanvasCourseNew {
   enrollment_term_id: CanvasID
   storage_quota_mb: number
   storage_quota_used_mb: number
+  teachers?: UserDisplay[]
+  needs_grading_count?: number
   constructor (apiresponse: any) {
     super(apiresponse)
     this.id = apiresponse.id
@@ -104,6 +106,8 @@ export class CanvasCourse extends CanvasCourseNew {
     this.enrollment_term_id = apiresponse.enrollment_term_id || apiresponse.term_id
     this.storage_quota_mb = apiresponse.storage_quota_mb
     this.storage_quota_used_mb = apiresponse.storage_quota_used_mb || 0
+    this.teachers = apiresponse.teachers || null
+    this.needs_grading_count = apiresponse.needs_grading_count
   }
 
   isPublished () {
@@ -123,6 +127,18 @@ export class CanvasCoursePayload {
     this.enroll_me = enroll_me
     this.enable_sis_reactivation = enable_sis_reactivation
   }
+}
+
+export enum CourseIncludes {
+  NeedsGradingCount = 'needs_grading_count',
+  Teachers = 'teachers',
+}
+
+export interface UserDisplay {
+  id: number
+  short_name: string
+  avatar_image_url: string
+  html_url: string
 }
 
 export interface ICanvasSectionNew {

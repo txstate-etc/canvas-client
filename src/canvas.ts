@@ -5,7 +5,7 @@ import range from 'lodash/range'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm } from './interfaces'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CourseIncludes } from './interfaces'
 
 export class CanvasConnector {
   private service: AxiosInstance
@@ -139,12 +139,12 @@ export class CanvasAPI {
   }
 
   // COURSES
-  public async getUserCourses (userId?: CanvasID|SpecialUserID): Promise<CanvasCourse[]> {
-    return this.getall(`/users/${userId || 'self'}/courses`)
+  public async getUserCourses (userId?: CanvasID|SpecialUserID, params?: { include?: CourseIncludes[] }): Promise<CanvasCourse[]> {
+    return this.getall(`/users/${userId || 'self'}/courses`, params?.include?.map(include => `include[]=${include}`))
   }
 
-  public async getUserCoursesBySIS (userId: SISUserID) {
-    return this.getUserCourses(`sis_user_id:${userId}`)
+  public async getUserCoursesBySIS (userId: SISUserID, params?: { include?: CourseIncludes[] }) {
+    return this.getUserCourses(`sis_user_id:${userId}`, params)
   }
 
   public async getCourse (courseId: CanvasID): Promise<CanvasCourse> {
