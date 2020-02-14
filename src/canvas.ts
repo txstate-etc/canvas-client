@@ -2,6 +2,7 @@ import { HttpsAgent } from 'agentkeepalive'
 import Axios, { AxiosInstance } from 'axios'
 import flatten from 'lodash/flatten'
 import range from 'lodash/range'
+import get from 'lodash/get'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
@@ -241,7 +242,7 @@ export class CanvasAPI {
   }
 
   public async getSectionEnrollments (id: CanvasID|SpecialSectionID): Promise<CanvasEnrollment[]> {
-    return this.getall(`/sections/${id}`, { include: 'enrollments' })
+    return this.getall(`/sections/${id}`, { include: 'enrollments' }).then((section) => get(section, 'enrollments'))
   }
 
   public async getSectionEnrollmentsBySIS (sisId: SISSectionID): Promise<CanvasEnrollment[]> {
