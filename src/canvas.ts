@@ -241,7 +241,7 @@ export class CanvasAPI {
   }
 
   public async getSectionEnrollments (id: CanvasID|SpecialSectionID): Promise<CanvasEnrollment[]> {
-    return this.getall(`/sections/${id}/enrollments`)
+    return this.getall(`/sections/${id}`, { include: 'enrollments' })
   }
 
   public async getSectionEnrollmentsBySIS (sisId: SISSectionID): Promise<CanvasEnrollment[]> {
