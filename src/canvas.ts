@@ -140,7 +140,7 @@ export class CanvasAPI {
 
   // COURSES
   public async getUserCourses (userId?: CanvasID|SpecialUserID, params?: { include?: CourseIncludes[] }): Promise<CanvasCourse[]> {
-    return this.getall(`/users/${userId || 'self'}/courses`, params?.include?.map(include => `include[]=${include}`))
+    return this.getall(`/users/${userId || 'self'}/courses`, params)
   }
 
   public async getUserCoursesBySIS (userId: SISUserID, params?: { include?: CourseIncludes[] }) {
