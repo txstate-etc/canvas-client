@@ -243,26 +243,27 @@ export class CanvasAPI {
 
   // ENROLLMENTS
   private enrollmentParams (filters?: CanvasEnrollmentParams) {
-    const params: any = {}
+    const params: any = filters
     if (filters?.roles?.length) {
       params.role = filters.roles
     }
+    if (filters?.user_id) params.user_id = filters.user_id
     return params
   }
 
-  public async getCourseEnrollments (id: CanvasID|SpecialCourseID): Promise<CanvasEnrollment[]> {
-    return this.getall(`/courses/${id}/enrollments`)
+  public async getCourseEnrollments (id: CanvasID|SpecialCourseID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
+    return this.getall(`/courses/${id}/enrollments`, this.enrollmentParams(params))
   }
 
-  public async getSectionEnrollments (id: CanvasID|SpecialSectionID): Promise<CanvasEnrollment[]> {
-    return this.getall(`/sections/${id}/enrollments`)
+  public async getSectionEnrollments (id: CanvasID|SpecialSectionID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
+    return this.getall(`/sections/${id}/enrollments`, this.enrollmentParams(params))
   }
 
-  public async getSectionEnrollmentsBySIS (sisId: SISSectionID): Promise<CanvasEnrollment[]> {
-    return this.getSectionEnrollments(`sis_section_id:${sisId}`)
+  public async getSectionEnrollmentsBySIS (sisId: SISSectionID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
+    return this.getSectionEnrollments(`sis_section_id:${sisId}`, params)
   }
 
-  public async getUserEnrollments (userId?: CanvasID|SpecialUserID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
+  public async getUserEnrollments (userId?: CanvasID|SpecialUserID, params?: Omit<CanvasEnrollmentParams, 'user_id'>): Promise<CanvasEnrollment[]> {
     return this.getall(`/users/${userId || 'self'}/enrollments`, this.enrollmentParams(params))
   }
 

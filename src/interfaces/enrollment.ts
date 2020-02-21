@@ -78,5 +78,6 @@ export class CanvasEnrollmentPayload {
 }
 
 export interface CanvasEnrollmentParams {
-  roles: CanvasEnrollmentType[]
+  roles?: CanvasEnrollmentType[]
+  user_id?: CanvasID
 }
