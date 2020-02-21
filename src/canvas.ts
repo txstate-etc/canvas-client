@@ -2,11 +2,10 @@ import { HttpsAgent } from 'agentkeepalive'
 import Axios, { AxiosInstance } from 'axios'
 import flatten from 'lodash/flatten'
 import range from 'lodash/range'
-import get from 'lodash/get'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CourseIncludes } from './interfaces'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams } from './interfaces'
 
 export class CanvasConnector {
   private service: AxiosInstance
@@ -140,22 +139,28 @@ export class CanvasAPI {
   }
 
   // COURSES
-  public async getUserCourses (userId?: CanvasID|SpecialUserID, params?: { include?: CourseIncludes[] }): Promise<CanvasCourse[]> {
-    return this.getall(`/users/${userId || 'self'}/courses`, params)
+  private courseParams (input?: CanvasCourseParams) {
+    const params: any = input || {}
+    return params
   }
 
-  public async getUserCoursesBySIS (userId: SISUserID, params?: { include?: CourseIncludes[] }) {
+  public async getUserCourses (userId?: CanvasID|SpecialUserID, params?: CanvasCourseParams): Promise<CanvasCourse[]> {
+    const courses = (await this.getall(`/users/${userId || 'self'}/courses`, this.courseParams(params))).map(c => new CanvasCourse(c))
+    return params?.roles?.length ? courses.filter(course => course.enrollments?.some(enrollment => params.roles?.includes(enrollment.type))) : courses
+  }
+
+  public async getUserCoursesBySIS (userId: SISUserID, params?: CanvasCourseParams) {
     return this.getUserCourses(`sis_user_id:${userId}`, params)
   }
 
   public async getCourse (courseId: CanvasID): Promise<CanvasCourse> {
-    return this.get(`/courses/${courseId}`)
+    return (await this.get(`/courses/${courseId}`)).map((c: any) => new CanvasCourse(c))
   }
 
   public async getCourses (accountId?: CanvasID, params?: { published?: boolean, enrollment_type?: CanvasEnrollmentShortType[] }): Promise<CanvasCourse[]> {
     if (!accountId) accountId = (await this.getRootAccount())?.id
     if (!accountId) return []
-    return this.getall(`/accounts/${accountId}/courses`, params)
+    return (await this.getall(`/accounts/${accountId}/courses`, params)).map(c => new CanvasCourse(c))
   }
 
   public async createCourse (accountId: CanvasID, coursePayload: CanvasCoursePayload): Promise<CanvasCourse> {
@@ -237,6 +242,14 @@ export class CanvasAPI {
   }
 
   // ENROLLMENTS
+  private enrollmentParams (filters?: CanvasEnrollmentParams) {
+    const params: any = {}
+    if (filters?.roles?.length) {
+      params.role = filters.roles
+    }
+    return params
+  }
+
   public async getCourseEnrollments (id: CanvasID|SpecialCourseID): Promise<CanvasEnrollment[]> {
     return this.getall(`/courses/${id}/enrollments`)
   }
@@ -247,6 +260,10 @@ export class CanvasAPI {
 
   public async getSectionEnrollmentsBySIS (sisId: SISSectionID): Promise<CanvasEnrollment[]> {
     return this.getSectionEnrollments(`sis_section_id:${sisId}`)
+  }
+
+  public async getUserEnrollments (userId?: CanvasID|SpecialUserID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
+    return this.getall(`/users/${userId || 'self'}/enrollments`, this.enrollmentParams(params))
   }
 
   public async createEnrollment (courseId: CanvasID, enrollmentPayload: CanvasEnrollmentPayload) {
@@ -280,5 +297,10 @@ export class CanvasAPI {
 
   public async createEnrollmentTerm (accountId: CanvasID, enrollmentTermPayload: CanvasEnrollmentPayload) {
     return this.post(`/accounts/${accountId}/terms`, enrollmentTermPayload)
+  }
+
+  // User
+  public async getUser (id?: CanvasID|SpecialUserID) {
+    return this.get(`/users/${id || 'self'}`)
   }
 }
