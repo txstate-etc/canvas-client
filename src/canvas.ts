@@ -205,11 +205,7 @@ export class CanvasAPI {
   public async deleteSection (id: CanvasID|SpecialSectionID) {
     const enrollments = await this.getSectionEnrollments(id)
     await Promise.all(enrollments.map(enrollment => this.deactivateEnrollmentFromSection(enrollment)))
-    let canvasSectionId = id
-    if (typeof id === 'string') {
-      canvasSectionId = await this.removeSISFromSection(id).then(res => res.id)
-    }
-
+    const canvasSectionId = this.removeSISFromSection(id).then(res => res.id)
     await this.delete(`/sections/${canvasSectionId}`)
   }
 
