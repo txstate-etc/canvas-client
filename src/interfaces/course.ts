@@ -131,3 +131,40 @@ export enum CanvasCourseIncludes {
   NeedsGradingCount = 'needs_grading_count',
   Teachers = 'teachers',
 }
+
+interface ICanvasCourseSettings {
+  allow_student_discussion_topics: boolean
+  allow_student_forum_attachments: boolean
+  allow_student_discussion_editing: boolean
+  grading_standard_enabled: boolean
+  grading_standard_id?: number
+  allow_student_organized_groups: boolean
+  hide_final_grades: boolean
+  hide_distribution_graphs: boolean
+  lock_all_announcements: boolean
+  usage_rights_required: boolean
+}
+export interface CanvasCourseSettings extends ICanvasCourseSettings {}
+export class CanvasCourseSettings {
+  constructor (apiresponse: ICanvasCourseSettings) {
+    Object.assign(this, apiresponse)
+  }
+}
+
+interface ICanvasCourseSettingsUpdate {
+  allow_student_discussion_topics?: boolean
+  allow_student_forum_attachments?: boolean
+  allow_student_discussion_editing?: boolean
+  allow_student_organized_groups?: boolean
+  filter_speed_grader_by_student_group?: boolean
+  hide_final_grades?: boolean
+  hide_distribution_graphs?: boolean
+  lock_all_announcements?: boolean
+  usage_rights_required?: boolean
+  restrict_student_past_view?: boolean
+  restrict_student_future_view?: boolean
+  show_announcements_on_home_page?: boolean
+  home_page_announcement_limit?: number
+}
+
+export interface CanvasCourseSettingsUpdate extends ICanvasCourseSettingsUpdate {}
