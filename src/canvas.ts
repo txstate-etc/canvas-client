@@ -169,7 +169,7 @@ export class CanvasAPI {
   }
 
   public async updateCourseSettings (courseId: CanvasID, params: CanvasCourseSettingsUpdate): Promise<CanvasCourseSettings> {
-    return this.put(`/courses${courseId}/settings`, params)
+    return this.put(`/courses/${courseId}/settings`, params)
   }
 
   // GRADING STANDARDS
