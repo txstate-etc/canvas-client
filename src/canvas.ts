@@ -6,6 +6,7 @@ import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
 import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate } from './interfaces'
+import { throwUnlessValidId } from './utils/utils'
 
 export class CanvasConnector {
   private service: AxiosInstance
@@ -145,6 +146,7 @@ export class CanvasAPI {
   }
 
   public async getUserCourses (userId?: CanvasID|SpecialUserID, params?: CanvasCourseParams): Promise<CanvasCourse[]> {
+    userId && throwUnlessValidId(userId, 'sis_user_id')
     const courses = (await this.getall(`/users/${userId || 'self'}/courses`, this.courseParams(params))).map(c => new CanvasCourse(c))
     return params?.roles?.length ? courses.filter(course => course.enrollments?.some(enrollment => params.roles?.includes(enrollment.type))) : courses
   }
@@ -186,6 +188,7 @@ export class CanvasAPI {
   }
 
   public async getSection (id: CanvasID|SpecialSectionID): Promise<CanvasSection> {
+    throwUnlessValidId(id, 'sis_section_id')
     return this.get(`/sections/${id}`)
   }
 
@@ -207,6 +210,7 @@ export class CanvasAPI {
   }
 
   public async deleteSection (id: CanvasID|SpecialSectionID) {
+    throwUnlessValidId(id, 'sis_section_id')
     const enrollments = await this.getSectionEnrollments(id)
     await Promise.all(enrollments.map(enrollment => this.deactivateEnrollmentFromSection(enrollment)))
     const canvasSectionId = this.removeSISFromSection(id).then(res => res.id)
@@ -218,6 +222,7 @@ export class CanvasAPI {
   }
 
   public async removeSISFromSection (id: CanvasID|SpecialSectionID): Promise<CanvasSection> {
+    throwUnlessValidId(id, 'sis_section_id')
     return this.put(`/sections/${id}`, CanvasSectionPayload.asVoidSISSectionId())
   }
 
@@ -230,6 +235,7 @@ export class CanvasAPI {
   }
 
   public async sectionExists (id: CanvasID|SpecialSectionID) {
+    throwUnlessValidId(id, 'sis_section_id')
     return this.head(`/sections/${id}`)
   }
 
@@ -256,10 +262,12 @@ export class CanvasAPI {
   }
 
   public async getCourseEnrollments (id: CanvasID|SpecialCourseID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
+    throwUnlessValidId(id, 'sis_course_id')
     return this.getall(`/courses/${id}/enrollments`, this.enrollmentParams(params))
   }
 
   public async getSectionEnrollments (id: CanvasID|SpecialSectionID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
+    throwUnlessValidId(id, 'sis_section_id')
     return this.getall(`/sections/${id}/enrollments`, this.enrollmentParams(params))
   }
 
@@ -268,6 +276,7 @@ export class CanvasAPI {
   }
 
   public async getUserEnrollments (userId?: CanvasID|SpecialUserID, params?: Omit<CanvasEnrollmentParams, 'user_id'>): Promise<CanvasEnrollment[]> {
+    userId && throwUnlessValidId(userId, 'sis_user_id')
     return this.getall(`/users/${userId || 'self'}/enrollments`, this.enrollmentParams(params))
   }
 
@@ -293,6 +302,7 @@ export class CanvasAPI {
   }
 
   public async getEnrollmentTerm (accountId: CanvasID, termId: CanvasID | SpecialTermID): Promise<CanvasEnrollmentTerm> {
+    throwUnlessValidId(termId, 'sis_term_id')
     return this.get(`/accounts/${accountId}/terms/${termId}`)
   }
 
@@ -306,6 +316,7 @@ export class CanvasAPI {
 
   // User
   public async getUser (id?: CanvasID|SpecialUserID) {
+    id && throwUnlessValidId(id, 'sis_user_id')
     return this.get(`/users/${id || 'self'}`)
   }
 }
