@@ -248,7 +248,7 @@ export class CanvasAPI {
   }
 
   public sectionsExistBySIS (sisIds: SISSectionID[]) {
-    return Promise.all(sisIds.map(sisId => this.sectionExists(sisId)))
+    return Promise.all(sisIds.map(sisId => this.sectionExists(`sis_section_id:${sisId}`)))
   }
 
   // ENROLLMENTS
