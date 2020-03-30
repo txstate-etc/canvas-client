@@ -48,12 +48,12 @@ export class ExternalToolCustomField {
   }
 }
 
-export class ExternalToolPayload {
-  url?: string
-  name?: string
-  privacy_level?: 'anonymous'|'public'|'name_only'
-  consumer_key?: string
-  shared_secret?: string
+export interface ExternalToolPayload {
+  url: string
+  name: string
+  privacy_level: 'anonymous'|'public'|'name_only'
+  consumer_key: string
+  shared_secret: string
   description?: string
   domain?: string
   icon_url?: string|null

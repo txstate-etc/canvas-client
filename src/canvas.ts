@@ -330,7 +330,7 @@ export class CanvasAPI {
     return this.post(`/accounts/${accountId}/external_tools`, externalToolPayload)
   }
 
-  public async editExternalTool (accountId: CanvasID, toolId: CanvasID, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
+  public async editExternalTool (accountId: CanvasID, toolId: CanvasID, externalToolPayload: Partial<ExternalToolPayload>): Promise<ExternalTool> {
     return this.put(`/accounts/${accountId}/external_tools/${toolId}`, externalToolPayload)
   }
 }
