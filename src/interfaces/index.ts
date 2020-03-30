@@ -5,6 +5,7 @@ export * from './gradingstandard'
 export * from './section'
 export * from './term'
 export * from './user'
+export * from './externaltool'
 
 export type CanvasID = number
 export type SISUserID = string
