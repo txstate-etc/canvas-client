@@ -7,6 +7,7 @@ import parselinkheader from 'parse-link-header'
 import qs from 'qs'
 import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate } from './interfaces'
 import { throwUnlessValidId } from './utils/utils'
+import { ExternalTool, ExternalToolPayload } from './interfaces/externaltool'
 
 export class CanvasConnector {
   private service: AxiosInstance
@@ -318,5 +319,18 @@ export class CanvasAPI {
   public async getUser (id?: CanvasID|SpecialUserID) {
     id && throwUnlessValidId(id, 'sis_user_id')
     return this.get(`/users/${id || 'self'}`)
+  }
+
+  // External Tools
+  public async getExternalTools (accountId: CanvasID): Promise<ExternalTool[]> {
+    return this.getall(`/accounts/${accountId}/external_tools`)
+  }
+
+  public async createExternalTool (accountId: CanvasID, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
+    return this.post(`/accounts/${accountId}/external_tools`, externalToolPayload)
+  }
+
+  public async editExternalTool (accountId: CanvasID, toolId: CanvasID, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
+    return this.put(`/accounts/${accountId}/external_tools/${toolId}`, externalToolPayload)
   }
 }
