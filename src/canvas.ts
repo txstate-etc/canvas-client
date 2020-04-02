@@ -156,7 +156,7 @@ export class CanvasAPI {
   }
 
   public async getCourses (accountId?: CanvasID, params?: { published?: boolean, enrollment_type?: CanvasEnrollmentShortType[] }): Promise<CanvasCourse[]> {
-    if (!accountId) accountId = (await this.getRootAccount())?.id
+    if (!accountId) accountId = await this.getRootAccounts().then(res => res[0].id)
     if (!accountId) return []
     return (await this.getall(`/accounts/${accountId}/courses`, params)).map(c => new CanvasCourse(c))
   }
@@ -172,7 +172,7 @@ export class CanvasAPI {
 
   // GRADING STANDARDS
   public async getGradingStandards (accountId?: CanvasID): Promise<CanvasGradingStandard[]> {
-    if (!accountId) accountId = (await this.getRootAccount())?.id
+    if (!accountId) accountId = await this.getRootAccounts().then(res => res[0].id)
     if (!accountId) return []
     return this.getall(`/accounts/${accountId}/grading_standards`)
   }
