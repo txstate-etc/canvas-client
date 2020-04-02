@@ -135,11 +135,6 @@ export class CanvasAPI {
     return this.getall(`/accounts/${id}/sub_accounts`, { recursive: true })
   }
 
-  public async getRootAccount (): Promise<CanvasAccount|undefined> {
-    const accounts = await this.getRootAccounts()
-    return accounts[0]
-  }
-
   // COURSES
   private courseParams (input?: CanvasCourseParams) {
     const params: any = input || {}
