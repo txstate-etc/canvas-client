@@ -209,7 +209,7 @@ export class CanvasAPI {
     throwUnlessValidId(id, 'sis_section_id')
     const enrollments = await this.getSectionEnrollments(id)
     await Promise.all(enrollments.map(enrollment => this.deactivateEnrollmentFromSection(enrollment)))
-    const canvasSectionId = this.removeSISFromSection(id).then(res => res.id)
+    const canvasSectionId = await this.removeSISFromSection(id).then(res => res.id)
     await this.delete(`/sections/${canvasSectionId}`)
   }
 
