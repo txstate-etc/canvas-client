@@ -207,10 +207,11 @@ export class CanvasAPI {
 
   public async deleteSection (id: CanvasID|SpecialSectionID) {
     throwUnlessValidId(id, 'sis_section_id')
-    const enrollments = await this.getSectionEnrollments(id)
-    await Promise.all(enrollments.map(enrollment => this.deactivateEnrollmentFromSection(enrollment)))
-    const canvasSectionId = await this.removeSISFromSection(id).then(res => res.id)
-    await this.delete(`/sections/${canvasSectionId}`)
+    await this.getSectionEnrollments(id).then(async (enrollments) => {
+      await Promise.all(enrollments.map(enrollment => this.deleteEnrollmentFromSection(enrollment)))
+      const canvasSectionId = await this.removeSISFromSection(id).then(res => res.id)
+      return this.delete(`/sections/${canvasSectionId}`)
+    })
   }
 
   public async deleteSectionBySIS (sisId: SISSectionID) {
@@ -280,7 +281,7 @@ export class CanvasAPI {
     return this.post(`/courses/${courseId}/enrollments`, enrollmentPayload)
   }
 
-  public async deactivateEnrollmentFromSection (enrollment: CanvasEnrollment) {
+  public async deactivateEnrollmentFromSection (enrollment: CanvasEnrollment): Promise<CanvasEnrollment> {
     return this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'deactivate' })
   }
 
@@ -290,6 +291,10 @@ export class CanvasAPI {
     }))
 
     return Promise.all(flatten(enrollments).map(async (enrollment: CanvasEnrollment) => this.deactivateEnrollmentFromSection(enrollment)))
+  }
+
+  public async deleteEnrollmentFromSection (enrollment: CanvasEnrollment): Promise<CanvasEnrollment> {
+    return this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'delete' })
   }
 
   // TERM
