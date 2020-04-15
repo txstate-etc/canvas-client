@@ -5,7 +5,7 @@ import range from 'lodash/range'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate } from './interfaces'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasCourseIncludes } from './interfaces'
 import { throwUnlessValidId } from './utils/utils'
 import { ExternalTool, ExternalToolPayload } from './interfaces/externaltool'
 
@@ -151,8 +151,8 @@ export class CanvasAPI {
     return this.getUserCourses(`sis_user_id:${userId}`, params)
   }
 
-  public async getCourse (courseId: CanvasID): Promise<CanvasCourse> {
-    return new CanvasCourse(await this.get(`/courses/${courseId}`))
+  public async getCourse (courseId: CanvasID, params?: CanvasCourseParams): Promise<CanvasCourse> {
+    return new CanvasCourse(await this.get(`/courses/${courseId}`, params))
   }
 
   public async getCourses (accountId?: CanvasID, params?: { published?: boolean, enrollment_type?: CanvasEnrollmentShortType[] }): Promise<CanvasCourse[]> {
@@ -168,6 +168,12 @@ export class CanvasAPI {
 
   public async updateCourseSettings (courseId: CanvasID, params: CanvasCourseSettingsUpdate): Promise<CanvasCourseSettings> {
     return this.put(`/courses/${courseId}/settings`, params)
+  }
+
+  public async deleteCourse (courseId: CanvasID) {
+    const courseSectionIds = await this.getCourse(courseId, { include: [CanvasCourseIncludes.Sections] }).then(course => course.sections?.map(section => section.id))
+    courseSectionIds && await Promise.all(courseSectionIds.map(id => this.removeSISFromSection(id)))
+    return this.delete(`/courses/${courseId}`)
   }
 
   // GRADING STANDARDS

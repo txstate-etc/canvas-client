@@ -1,4 +1,5 @@
 import { CanvasEnrollmentShortType, SpecialTermID, CanvasID, SISCourseID, UserDisplay, CanvasEnrollmentDisplay } from '.'
+import { CanvasSection } from './section'
 
 export interface ICanvasCourseNew {
   name: string
@@ -84,6 +85,9 @@ export class CanvasCourse extends CanvasCourseNew {
   teachers?: UserDisplay[]
   needs_grading_count?: number
   enrollments?: CanvasEnrollmentDisplay[]
+  sections?: CanvasSection[]
+  syllabus_body?: string
+  public_description?: string
   constructor (apiresponse: any) {
     super(apiresponse)
     this.id = apiresponse.id
@@ -101,6 +105,9 @@ export class CanvasCourse extends CanvasCourseNew {
     this.teachers = apiresponse.teachers || null
     this.needs_grading_count = apiresponse.needs_grading_count
     this.enrollments = apiresponse.enrollments
+    this.sections = apiresponse.sections
+    this.syllabus_body = apiresponse.syllabus_body
+    this.public_description = apiresponse.public_description
   }
 
   isPublished () {
@@ -130,6 +137,7 @@ export interface CanvasCourseParams {
 export enum CanvasCourseIncludes {
   NeedsGradingCount = 'needs_grading_count',
   Teachers = 'teachers',
+  Sections = 'sections'
 }
 
 interface ICanvasCourseSettings {
