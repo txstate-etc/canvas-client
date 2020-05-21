@@ -166,6 +166,10 @@ export class CanvasAPI {
     return this.post(`/accounts/${accountId}/courses`, coursePayload)
   }
 
+  public async updateCourse (courseId: CanvasID, coursePayload: CanvasCoursePayload): Promise<CanvasCourse> {
+    return this.put(`/courses/${courseId}`, coursePayload)
+  }
+
   public async updateCourseSettings (courseId: CanvasID, params: CanvasCourseSettingsUpdate): Promise<CanvasCourseSettings> {
     return this.put(`/courses/${courseId}/settings`, params)
   }
