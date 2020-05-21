@@ -155,7 +155,7 @@ export class CanvasAPI {
     return new CanvasCourse(await this.get(`/courses/${courseId}`, params))
   }
 
-  public async getCourses (accountId?: CanvasID, params?: { published?: boolean, enrollment_type?: CanvasEnrollmentShortType[], by_subaccounts?: CanvasID[] }): Promise<CanvasCourse[]> {
+  public async getCourses (accountId?: CanvasID, params?: { published?: boolean, enrollment_type?: CanvasEnrollmentShortType[], by_subaccounts?: CanvasID[], enrollment_term_id: CanvasID }): Promise<CanvasCourse[]> {
     if (!accountId) accountId = await this.getRootAccounts().then(res => res[0].id)
     if (!accountId) return []
     return (await this.getall(`/accounts/${accountId}/courses`, params)).map(c => new CanvasCourse(c))
