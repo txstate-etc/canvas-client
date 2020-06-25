@@ -1,44 +1,18 @@
 {
-  "env": {
-    "es6": true,
-    "node": true,
-    "mocha": true
-  },
-  "extends": ["plugin:@typescript-eslint/recommended", "standard"],
-  "globals": {
-    "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly"
-  },
-  "parser": "@typescript-eslint/parser",
+  "extends": "standard-with-typescript",
   "parserOptions": {
-    "ecmaVersion": 2018,
-    "sourceType": "module"
+      "project": "./tsconfig.eslint.json"
   },
-  "plugins": ["@typescript-eslint"],
   "rules": {
-    // special rules for this project
-    "camelcase": "off",
+    "@typescript-eslint/array-type": "off",
     "@typescript-eslint/camelcase": "off",
-    "@typescript-eslint/no-empty-interface": "off",
-    // standard txstate rules
-    "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-use-before-define": "off", // Allows us to hoist variables and functions which I am a fan of, functions not variables that is.
-    "@typescript-eslint/no-explicit-any": "off", // Too strict for my case, sometimes I need an any type
-    "@typescript-eslint/member-delimiter-style": [
-      "error",
-      {
-        // Prevents us from using any delimiter for interface properties.
-        "multiline": {
-          "delimiter": "none",
-          "requireLast": false
-        },
-        "singleline": {
-          "delimiter": "comma",
-          "requireLast": false
-        }
-      }
-    ],
-    "@typescript-eslint/indent": "off" // This is the job of StandardJS, they are competing rules so we turn off the Typescript one.
+    "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/no-extraneous-class": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/prefer-readonly": "off",
+    "@typescript-eslint/promise-function-async": "off",
+    "@typescript-eslint/return-await": ["error", "in-try-catch"],
+    "@typescript-eslint/strict-boolean-expressions": ["off"]
   }
 }

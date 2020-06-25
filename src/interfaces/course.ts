@@ -37,11 +37,11 @@ export class CanvasCourseNew {
   constructor (course: ICanvasCourseNew) {
     this.name = course.name
     this.course_code = course.course_code
-    this.term_id = course.term_id || course.enrollment_term_id
+    this.term_id = course.term_id ?? course.enrollment_term_id
     this.locale = course.locale
     this.sis_course_id = course.sis_course_id
     this.integration_id = course.integration_id
-    this.license = course.license || 'private'
+    this.license = course.license ?? 'private'
     this.is_public = course.is_public
     this.is_public_to_auth_users = course.is_public_to_auth_users
     this.public_syllabus = course.public_syllabus
@@ -55,8 +55,8 @@ export class CanvasCourseNew {
     this.restrict_enrollments_to_course_dates = course.restrict_enrollments_to_course_dates
     this.hide_final_grades = course.hide_final_grades
     this.apply_assignment_group_weights = course.apply_assignment_group_weights
-    this.time_zone = course.time_zone || 'America/Chicago'
-    this.default_view = course.default_view || 'syllabus'
+    this.time_zone = course.time_zone ?? 'America/Chicago'
+    this.default_view = course.default_view ?? 'syllabus'
     this.syllabus_body = course.syllabus_body
     this.grading_standard_id = course.grading_standard_id
     this.grade_passback_setting = course.grade_passback_setting
@@ -176,3 +176,23 @@ interface ICanvasCourseSettingsUpdate {
 }
 
 export interface CanvasCourseSettingsUpdate extends ICanvasCourseSettingsUpdate {}
+
+export interface CanvasCourseListFilters {
+  with_enrollments?: boolean
+  enrollment_type?: CanvasEnrollmentShortType[]
+  published?: boolean
+  completed?: boolean
+  blueprint?: boolean
+  blueprint_associated?: boolean
+  by_teachers?: CanvasID[]
+  by_subaccounts?: CanvasID[]
+  state?: ('created'|'claimed'|'available'|'completed'|'deleted'|'all')[]
+  enrollment_term_id?: CanvasID
+  search_term?: string
+  include?: ('syllabus_body'|'term'|'course_progress'|'storage_quota_used_mb'|'total_students'|'teachers'|'account_name'|'concluded')[]
+  sort?: ('course_name'|'sis_course_id'|'teacher'|'account_name')
+  order?: ('asc'|'desc')
+  search_by?: 'course'|'teacher'
+  starts_before?: Date
+  ends_after?: Date
+}

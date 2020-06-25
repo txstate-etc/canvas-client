@@ -5,8 +5,8 @@ import range from 'lodash/range'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, CanvasEnrollmentShortType, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasCourseIncludes } from './interfaces'
-import { throwUnlessValidId } from './utils/utils'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasUserUpdatePayload, CanvasCourseListFilters, ICanvasEnrollmentTerm, CanvasEnrollmentTermPayload, CanvasEnrollmentTermParams, CanvasCourseIncludes } from './interfaces'
+import { throwUnlessValidId, throwUnlessValidUserId } from './utils/utils'
 import { ExternalTool, ExternalToolPayload } from './interfaces/externaltool'
 
 export class CanvasConnector {
@@ -14,7 +14,7 @@ export class CanvasConnector {
   private rateLimit = pLimit(10)
 
   constructor (canvasUrl: string, token?: string, options: CanvasAPIOptions = {}) {
-    const maxConnections = options.maxConnections || 10
+    const maxConnections = options.maxConnections ?? 10
     this.rateLimit = pLimit(maxConnections)
     this.service = Axios.create({
       baseURL: canvasUrl + '/api/v1',
@@ -32,21 +32,22 @@ export class CanvasConnector {
   }
 
   async get (url: string, params: any = {}): Promise<any> {
-    const res = await this.rateLimit(() => this.service.get(url, { params }))
+    const res = await this.rateLimit(async () => this.service.get(url, { params }))
     return res.data
   }
 
-  async getall (url: string, params: any = {}): Promise<any[]> {
-    const res = await this.rateLimit(() => this.service.get(url, { params: { ...params, page: 1, per_page: 1000 } }))
-    const ret = res.data
+  async getall (url: string, params: any = {}, returnObjKey?: string): Promise<any[]> {
+    const res = await this.rateLimit(async () => this.service.get(url, { params: { ...params, page: 1, per_page: 1000 } }))
+    const ret = (returnObjKey ? res.data?.[returnObjKey] : res.data)
     const links = parselinkheader(res.headers.link)
     const lasturl = links?.last?.url
     if (lasturl) {
       const lastparams = qs.parse(lasturl.slice(lasturl.lastIndexOf('?') + 1))
-      if (lastparams.page > 1) {
-        const alldata = await Promise.all(range(2, lastparams.page + 1).map(async p => {
-          const res = await this.rateLimit(() => this.service.get(url, { params: { ...lastparams, page: p } }))
-          return res.data || []
+      const page = parseInt(lastparams?.page as string)
+      if (page > 1) {
+        const alldata = await Promise.all(range(2, page + 1).map(async p => {
+          const res = await this.rateLimit(async () => this.service.get(url, { params: { ...lastparams, page: p } }))
+          return (returnObjKey ? res.data?.[returnObjKey] : res.data) || []
         }))
         ret.push(...flatten(alldata))
       }
@@ -55,17 +56,17 @@ export class CanvasConnector {
   }
 
   async delete (url: string, params: any = {}): Promise<any> {
-    const res = await this.rateLimit(() => this.service.delete(url, { params }))
+    const res = await this.rateLimit(async () => this.service.delete(url, { params }))
     return res.data
   }
 
   async put (url: string, payload: any): Promise<any> {
-    const res = await this.rateLimit(() => this.service.put(url, payload))
+    const res = await this.rateLimit(async () => this.service.put(url, payload))
     return res.data
   }
 
   async post (url: string, payload: any): Promise<any> {
-    const res = await this.rateLimit(() => this.service.post(url, payload))
+    const res = await this.rateLimit(async () => this.service.post(url, payload))
     return res.data
   }
 
@@ -87,6 +88,7 @@ interface CanvasAPIOptions {
 
 export class CanvasAPI {
   private connectors: CanvasConnector[]
+  private root?: CanvasAccount
 
   constructor (canvasUrl: string|undefined, tokens?: string[], options?: CanvasAPIOptions) {
     if (!canvasUrl || !canvasUrl.length) throw new Error('Instantiated a canvas client with no URL.')
@@ -103,8 +105,8 @@ export class CanvasAPI {
     return this.getConnector().get(url, params)
   }
 
-  async getall (url: string, params: any = {}): Promise<any[]> {
-    return this.getConnector().getall(url, params)
+  async getall (url: string, params: any = {}, returnObjKey?: string): Promise<any[]> {
+    return this.getConnector().getall(url, params, returnObjKey)
   }
 
   async delete (url: string, params: any = {}): Promise<any> {
@@ -131,19 +133,19 @@ export class CanvasAPI {
     return this.getall('/accounts')
   }
 
+  public async getRootAccount (): Promise<CanvasAccount> {
+    if (!this.root) this.root = (await this.getRootAccounts())[0]
+    return this.root
+  }
+
   public async getSubAccounts (id: CanvasID): Promise<CanvasAccount[]> {
     return this.getall(`/accounts/${id}/sub_accounts`, { recursive: true })
   }
 
   // COURSES
-  private courseParams (input?: CanvasCourseParams) {
-    const params: any = input || {}
-    return params
-  }
-
-  public async getUserCourses (userId?: CanvasID|SpecialUserID, params?: CanvasCourseParams): Promise<CanvasCourse[]> {
-    userId && throwUnlessValidId(userId, 'sis_user_id')
-    const courses = (await this.getall(`/users/${userId || 'self'}/courses`, this.courseParams(params))).map(c => new CanvasCourse(c))
+  public async getUserCourses (userId?: CanvasID|SpecialUserID, params: CanvasCourseParams = {}): Promise<CanvasCourse[]> {
+    userId && throwUnlessValidUserId(userId)
+    const courses = (await this.getall(`/users/${userId ?? 'self'}/courses`, params)).map(c => new CanvasCourse(c))
     return params?.roles?.length ? courses.filter(course => course.enrollments?.some(enrollment => params.roles?.includes(enrollment.type))) : courses
   }
 
@@ -155,8 +157,8 @@ export class CanvasAPI {
     return new CanvasCourse(await this.get(`/courses/${courseId}`, params))
   }
 
-  public async getCourses (accountId?: CanvasID, params?: { published?: boolean, enrollment_type?: CanvasEnrollmentShortType[], by_subaccounts?: CanvasID[], enrollment_term_id: CanvasID }): Promise<CanvasCourse[]> {
-    if (!accountId) accountId = await this.getRootAccounts().then(res => res[0].id)
+  public async getCourses (accountId?: CanvasID, params?: CanvasCourseListFilters): Promise<CanvasCourse[]> {
+    if (!accountId) accountId = (await this.getRootAccount()).id
     if (!accountId) return []
     return (await this.getall(`/accounts/${accountId}/courses`, params)).map(c => new CanvasCourse(c))
   }
@@ -182,7 +184,7 @@ export class CanvasAPI {
 
   // GRADING STANDARDS
   public async getGradingStandards (accountId?: CanvasID): Promise<CanvasGradingStandard[]> {
-    if (!accountId) accountId = await this.getRootAccounts().then(res => res[0].id)
+    if (!accountId) accountId = (await this.getRootAccount()).id
     if (!accountId) return []
     return this.getall(`/accounts/${accountId}/grading_standards`)
   }
@@ -283,8 +285,8 @@ export class CanvasAPI {
   }
 
   public async getUserEnrollments (userId?: CanvasID|SpecialUserID, params?: Omit<CanvasEnrollmentParams, 'user_id'>): Promise<CanvasEnrollment[]> {
-    userId && throwUnlessValidId(userId, 'sis_user_id')
-    return this.getall(`/users/${userId || 'self'}/enrollments`, this.enrollmentParams(params))
+    userId && throwUnlessValidUserId(userId)
+    return this.getall(`/users/${userId ?? 'self'}/enrollments`, this.enrollmentParams(params))
   }
 
   public async createEnrollment (courseId: CanvasID, enrollmentPayload: CanvasEnrollmentPayload) {
@@ -308,35 +310,56 @@ export class CanvasAPI {
   }
 
   // TERM
-  public async getEnrollmentTerms (accountId: CanvasID): Promise<CanvasEnrollmentTerm[]> {
-    return this.get(`/accounts/${accountId}/terms`)
+  public async getEnrollmentTerms (accountId?: CanvasID, params?: CanvasEnrollmentTermParams): Promise<CanvasEnrollmentTerm[]> {
+    if (!accountId) accountId = (await this.getRootAccount()).id
+    if (!accountId) return []
+    return (await this.getall(`/accounts/${accountId}/terms`, params, 'enrollment_terms')).map((t: ICanvasEnrollmentTerm) => new CanvasEnrollmentTerm(t))
+  }
+
+  public async getEnrollmentTermCurrent (forDate = new Date()) {
+    const terms = await this.getEnrollmentTerms()
+    for (const term of terms) {
+      if (term.start_at < forDate && term.end_at > forDate) return term
+    }
+    return undefined
   }
 
   public async getEnrollmentTerm (accountId: CanvasID, termId: CanvasID | SpecialTermID): Promise<CanvasEnrollmentTerm> {
     throwUnlessValidId(termId, 'sis_term_id')
-    return this.get(`/accounts/${accountId}/terms/${termId}`)
+    return new CanvasEnrollmentTerm(await this.get(`/accounts/${accountId}/terms/${termId}`))
   }
 
   public async getEnrollmentTermBySis (accountId: CanvasID, sisTermId: SISTermID): Promise<CanvasEnrollmentTerm> {
     return this.getEnrollmentTerm(accountId, `sis_term_id:${sisTermId}`)
   }
 
-  public async createEnrollmentTerm (accountId: CanvasID, enrollmentTermPayload: CanvasEnrollmentPayload) {
-    return this.post(`/accounts/${accountId}/terms`, enrollmentTermPayload)
+  public async createEnrollmentTerm (accountId: CanvasID|undefined, enrollmentTermPayload: CanvasEnrollmentTermPayload) {
+    if (!accountId) accountId = (await this.getRootAccount()).id
+    if (!accountId) throw new Error('Tried to create an enrollment term with no account ID and root account could not be determined.')
+    return new CanvasEnrollmentTerm(await this.post(`/accounts/${accountId}/terms`, enrollmentTermPayload))
   }
 
   // User
   public async getUser (id?: CanvasID|SpecialUserID) {
-    id && throwUnlessValidId(id, 'sis_user_id')
-    return this.get(`/users/${id || 'self'}`)
+    id && throwUnlessValidUserId(id)
+    return this.get(`/users/${id ?? 'self'}`)
+  }
+
+  public async updateUser (id: CanvasID|SpecialUserID|'self', payload: CanvasUserUpdatePayload) {
+    throwUnlessValidUserId(id)
+    return this.put(`/users/${id}`, payload)
   }
 
   // External Tools
-  public async getExternalTools (accountId: CanvasID): Promise<ExternalTool[]> {
+  public async getExternalTools (accountId?: CanvasID): Promise<ExternalTool[]> {
+    if (!accountId) accountId = (await this.getRootAccount()).id
+    if (!accountId) return []
     return this.getall(`/accounts/${accountId}/external_tools`)
   }
 
-  public async createExternalTool (accountId: CanvasID, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
+  public async createExternalTool (accountId: CanvasID|undefined, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
+    if (!accountId) accountId = (await this.getRootAccount()).id
+    if (!accountId) throw new Error('Tried to create an external tool with no account ID and root account could not be determined.')
     return this.post(`/accounts/${accountId}/external_tools`, externalToolPayload)
   }
 

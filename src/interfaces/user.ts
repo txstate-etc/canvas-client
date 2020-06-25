@@ -31,3 +31,20 @@ export interface UserDisplay {
   avatar_image_url: string
   html_url: string
 }
+
+export interface CanvasUserUpdatePayload {
+  user?: {
+    name?: string
+    short_name?: string
+    sortable_name?: string
+    time_zone?: string
+    email?: string
+    locale?: string
+    avatar?: {
+      token?: string
+      url?: string
+    }
+    title?: string
+    bio?: string
+  }
+}
