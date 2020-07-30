@@ -187,7 +187,7 @@ export interface CanvasCourseListFilters {
   by_teachers?: CanvasID[]
   by_subaccounts?: CanvasID[]
   state?: ('created'|'claimed'|'available'|'completed'|'deleted'|'all')[]
-  enrollment_term_id?: CanvasID
+  enrollment_term_id?: CanvasID|SpecialTermID
   search_term?: string
   include?: ('syllabus_body'|'term'|'course_progress'|'storage_quota_used_mb'|'total_students'|'teachers'|'account_name'|'concluded')[]
   sort?: ('course_name'|'sis_course_id'|'teacher'|'account_name')
