@@ -40,7 +40,7 @@ export class CanvasEnrollmentNew {
     this.type = enrollment.type || CanvasEnrollmentType.Student
     this.role = enrollment.role
     this.role_id = enrollment.role_id
-    this.enrollment_state = enrollment.enrollment_state || CanvasEnrollmentState.Active
+    this.enrollment_state = enrollment.enrollment_state ?? CanvasEnrollmentState.Active
     this.course_section_id = enrollment.course_section_id
     this.limit_privileges_to_course_section = enrollment.limit_privileges_to_course_section
     this.notify = enrollment.notify
