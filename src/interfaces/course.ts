@@ -78,7 +78,7 @@ export class CanvasCourse extends CanvasCourseNew {
   created_at: Date
   sis_import_id: CanvasID|null
   workflow_state: CanvasWorkflowState
-  term_id: CanvasID
+  term_id?: CanvasID
   enrollment_term_id: CanvasID
   storage_quota_mb: number
   storage_quota_used_mb: number
@@ -137,7 +137,8 @@ export interface CanvasCourseParams {
 export enum CanvasCourseIncludes {
   NeedsGradingCount = 'needs_grading_count',
   Teachers = 'teachers',
-  Sections = 'sections'
+  Sections = 'sections',
+  Term = 'term'
 }
 
 interface ICanvasCourseSettings {
