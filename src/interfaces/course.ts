@@ -1,5 +1,6 @@
 import { CanvasEnrollmentShortType, SpecialTermID, CanvasID, SISCourseID, UserDisplay, CanvasEnrollmentDisplay } from '.'
 import { CanvasSection } from './section'
+import { CanvasEnrollmentTerm } from './term'
 
 export interface ICanvasCourseNew {
   name: string
@@ -88,6 +89,7 @@ export class CanvasCourse extends CanvasCourseNew {
   sections?: CanvasSection[]
   syllabus_body?: string
   public_description?: string
+  term?: CanvasEnrollmentTerm
   constructor (apiresponse: any) {
     super(apiresponse)
     this.id = apiresponse.id
@@ -108,6 +110,7 @@ export class CanvasCourse extends CanvasCourseNew {
     this.sections = apiresponse.sections
     this.syllabus_body = apiresponse.syllabus_body
     this.public_description = apiresponse.public_description
+    this.term = apiresponse.term
   }
 
   isPublished () {
