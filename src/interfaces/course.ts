@@ -137,6 +137,7 @@ export class CanvasCoursePayload {
 export interface CanvasCourseParams {
   include?: CanvasCourseIncludes[]
   roles?: CanvasEnrollmentShortType[]
+  state?: CanvasCourseState[]
 }
 
 export enum CanvasCourseIncludes {
@@ -145,6 +146,13 @@ export enum CanvasCourseIncludes {
   Sections = 'sections',
   Term = 'term',
   Concluded = 'concluded'
+}
+
+export enum CanvasCourseState {
+  Unpublished = 'unpublished',
+  Available = 'available', 
+  Completed = 'completed', 
+  Deleted = 'deleted'
 }
 
 interface ICanvasCourseSettings {
