@@ -182,6 +182,11 @@ export class CanvasAPI {
     return this.delete(`/courses/${courseId}`)
   }
 
+  public async concludeCourse (courseId: CanvasID) {
+    return this.delete(`/courses/${courseId}`, { event: 'conclude' })
+  }
+
+
   // GRADING STANDARDS
   public async getGradingStandards (accountId?: CanvasID): Promise<CanvasGradingStandard[]> {
     if (!accountId) accountId = (await this.getRootAccount()).id
