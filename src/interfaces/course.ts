@@ -90,6 +90,7 @@ export class CanvasCourse extends CanvasCourseNew {
   syllabus_body?: string
   public_description?: string
   term?: CanvasEnrollmentTerm
+  concluded?: boolean
   constructor (apiresponse: any) {
     super(apiresponse)
     this.id = apiresponse.id
@@ -111,6 +112,7 @@ export class CanvasCourse extends CanvasCourseNew {
     this.syllabus_body = apiresponse.syllabus_body
     this.public_description = apiresponse.public_description
     this.term = apiresponse.term
+    this.concluded = apiresponse.concluded
   }
 
   isPublished () {
@@ -141,7 +143,8 @@ export enum CanvasCourseIncludes {
   NeedsGradingCount = 'needs_grading_count',
   Teachers = 'teachers',
   Sections = 'sections',
-  Term = 'term'
+  Term = 'term',
+  Concluded = 'concluded'
 }
 
 interface ICanvasCourseSettings {
