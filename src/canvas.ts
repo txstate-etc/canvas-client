@@ -39,7 +39,7 @@ export class CanvasConnector {
   async getall (url: string, params: any = {}, returnObjKey?: string): Promise<any[]> {
     const res = await this.rateLimit(async () => this.service.get(url, { params: { ...params, page: 1, per_page: 1000 } }))
     const ret = (returnObjKey ? res.data?.[returnObjKey] : res.data)
-    const links = parselinkheader(res.headers.link)
+    let links = parselinkheader(res.headers.link)
     const lasturl = links?.last?.url
     if (lasturl) {
       const lastparams = qs.parse(lasturl.slice(lasturl.lastIndexOf('?') + 1))
@@ -50,6 +50,12 @@ export class CanvasConnector {
           return (returnObjKey ? res.data?.[returnObjKey] : res.data) || []
         }))
         ret.push(...flatten(alldata))
+      }
+    } else if (links?.next?.url) {
+      while (links?.next?.url) {
+        const res = await this.rateLimit(async () => this.service.get(links!.next.url))
+        ret.push(...res.data)
+        links = parselinkheader(res.headers.link)
       }
     }
     return ret
@@ -185,7 +191,6 @@ export class CanvasAPI {
   public async concludeCourse (courseId: CanvasID) {
     return this.delete(`/courses/${courseId}`, { event: 'conclude' })
   }
-
 
   // GRADING STANDARDS
   public async getGradingStandards (accountId?: CanvasID): Promise<CanvasGradingStandard[]> {

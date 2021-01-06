@@ -15,6 +15,14 @@ describe('enrollments', function () {
       expect(enrollment.course_id).to.equal(courseId)
     }
   })
+  it('should retrieve more than 100 enrollments from a section', async () => {
+    const enrollments = await canvasAPI.getSectionEnrollmentsBySIS('202130.30375')
+    expect(enrollments).to.have.length.greaterThan(100)
+    for (const enrollment of enrollments) {
+      expect(enrollment.id).to.be.greaterThan(0)
+      expect(enrollment.course_id).to.be.greaterThan(0)
+    }
+  }).timeout(10000)
   it('should retrieve enrollments from a user', async () => {
     const enrollments = await canvasAPI.getUserEnrollments('self')
     expect(enrollments).to.have.length.greaterThan(0)
