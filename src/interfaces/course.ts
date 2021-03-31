@@ -3,7 +3,7 @@ import { CanvasSection } from './section'
 import { CanvasEnrollmentTerm } from './term'
 
 export interface ICanvasCourseNew {
-  name: string
+  name?: string
   course_code?: string
   start_at?: Date
   end_at?: Date
@@ -150,8 +150,8 @@ export enum CanvasCourseIncludes {
 
 export enum CanvasCourseState {
   Unpublished = 'unpublished',
-  Available = 'available', 
-  Completed = 'completed', 
+  Available = 'available',
+  Completed = 'completed',
   Deleted = 'deleted'
 }
 
