@@ -7,7 +7,6 @@ dotenv.config()
 import { canvasAPI } from '../src'
 
 describe('courses', function () {
-  this.timeout(20000)
   it('should retrieve user current courses', async () => {
     const courses = await canvasAPI.getUserCourses()
     expect(courses).to.have.length.greaterThan(0)
@@ -30,5 +29,5 @@ describe('courses', function () {
       enrollment_term_id: term!.id
     })
     expect(courses).to.have.length.greaterThan(100)
-  })
+  }).timeout(25000)
 })

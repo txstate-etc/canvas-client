@@ -33,12 +33,12 @@ export class CanvasConnector {
   }
 
   async get (url: string, params: any = {}): Promise<any> {
-    const res = await this.rateLimit(async () => this.service.get(url, { params }))
+    const res = await this.rateLimit(async () => await this.service.get(url, { params }))
     return res.data
   }
 
   async getall (url: string, params: any = {}, returnObjKey?: string): Promise<any[]> {
-    const res = await this.rateLimit(async () => this.service.get(url, { params: { ...params, page: 1, per_page: 1000 } }))
+    const res = await this.rateLimit(async () => await this.service.get(url, { params: { ...params, page: 1, per_page: 1000 } }))
     const ret = (returnObjKey ? res.data?.[returnObjKey] : res.data)
     let links = parselinkheader(res.headers.link)
     const lasturl = links?.last?.url
@@ -47,14 +47,14 @@ export class CanvasConnector {
       const page = parseInt(lastparams?.page as string)
       if (page > 1) {
         const alldata = await Promise.all(range(2, page + 1).map(async p => {
-          const res = await this.rateLimit(async () => this.service.get(url, { params: { ...lastparams, page: p } }))
+          const res = await this.rateLimit(async () => await this.service.get(url, { params: { ...lastparams, page: p } }))
           return (returnObjKey ? res.data?.[returnObjKey] : res.data) || []
         }))
         ret.push(...flatten(alldata))
       }
     } else if (links?.next?.url) {
       while (links?.next?.url) {
-        const res = await this.rateLimit(async () => this.service.get(links!.next.url))
+        const res = await this.rateLimit(async () => await this.service.get(links!.next.url))
         ret.push(...res.data)
         links = parselinkheader(res.headers.link)
       }
@@ -63,22 +63,22 @@ export class CanvasConnector {
   }
 
   async delete (url: string, params: any = {}): Promise<any> {
-    const res = await this.rateLimit(async () => this.service.delete(url, { params }))
+    const res = await this.rateLimit(async () => await this.service.delete(url, { params }))
     return res.data
   }
 
   async put (url: string, payload: any): Promise<any> {
-    const res = await this.rateLimit(async () => this.service.put(url, payload))
+    const res = await this.rateLimit(async () => await this.service.put(url, payload))
     return res.data
   }
 
   async post (url: string, payload: any): Promise<any> {
-    const res = await this.rateLimit(async () => this.service.post(url, payload))
+    const res = await this.rateLimit(async () => await this.service.post(url, payload))
     return res.data
   }
 
   async head (url: string): Promise<boolean> {
-    return this.rateLimit(async () => {
+    return await this.rateLimit(async () => {
       try {
         const res = await this.service.head(url)
         return res.status >= 200 && res.status < 400
@@ -115,26 +115,27 @@ export class CanvasAPI {
   }
 
   async get (url: string, params: any = {}): Promise<any> {
-    return this.getConnector().get(url, params)
+    return await this.getConnector().get(url, params)
   }
 
   async getall (url: string, params: any = {}, returnObjKey?: string): Promise<any[]> {
-    return this.getConnector().getall(url, params, returnObjKey)
+    return await this.getConnector().getall(url, params, returnObjKey)
   }
 
   async delete (url: string, params: any = {}): Promise<any> {
-    return this.getConnector().delete(url, params)
+    return await this.getConnector().delete(url, params)
   }
 
   async put (url: string, payload: any): Promise<any> {
-    return this.getConnector().put(url, payload)
+    return await this.getConnector().put(url, payload)
   }
 
   async post (url: string, payload: any): Promise<any> {
-    return this.getConnector().post(url, payload)
+    return await this.getConnector().post(url, payload)
   }
 
   async head (url: string): Promise<boolean> {
+    return await this.getConnector().head(url)
   }
 
   async graphql (query: string, variables: any) {
@@ -146,7 +147,7 @@ export class CanvasAPI {
 
   // ACCOUNTS
   public async getRootAccounts (): Promise<CanvasAccount[]> {
-    return this.getall('/accounts')
+    return await this.getall('/accounts')
   }
 
   public async getRootAccount (): Promise<CanvasAccount> {
@@ -155,7 +156,7 @@ export class CanvasAPI {
   }
 
   public async getSubAccounts (id: CanvasID): Promise<CanvasAccount[]> {
-    return this.getall(`/accounts/${id}/sub_accounts`, { recursive: true })
+    return await this.getall(`/accounts/${id}/sub_accounts`, { recursive: true })
   }
 
   // COURSES
@@ -166,7 +167,7 @@ export class CanvasAPI {
   }
 
   public async getUserCoursesBySIS (userId: SISUserID, params?: CanvasCourseParams) {
-    return this.getUserCourses(`sis_user_id:${userId}`, params)
+    return await this.getUserCourses(`sis_user_id:${userId}`, params)
   }
 
   public async getCourse (courseId: CanvasID, params?: CanvasCourseParams): Promise<CanvasCourse> {
@@ -181,15 +182,15 @@ export class CanvasAPI {
 
   public async createCourse (accountId: CanvasID, coursePayload: CanvasCoursePayload): Promise<CanvasCourse> {
     if (!coursePayload.course.time_zone) coursePayload.course.time_zone = this.defaultCourseTimeZone
-    return this.post(`/accounts/${accountId}/courses`, coursePayload)
+    return await this.post(`/accounts/${accountId}/courses`, coursePayload)
   }
 
   public async updateCourse (courseId: CanvasID, coursePayload: CanvasCoursePayload): Promise<CanvasCourse> {
-    return this.put(`/courses/${courseId}`, coursePayload)
+    return await this.put(`/courses/${courseId}`, coursePayload)
   }
 
   public async updateCourseSettings (courseId: CanvasID, params: CanvasCourseSettingsUpdate): Promise<CanvasCourseSettings> {
-    return this.put(`/courses/${courseId}/settings`, params)
+    return await this.put(`/courses/${courseId}/settings`, params)
   }
 
   public async deleteCourse (courseId: CanvasID) {
@@ -199,42 +200,42 @@ export class CanvasAPI {
   }
 
   public async concludeCourse (courseId: CanvasID) {
-    return this.delete(`/courses/${courseId}`, { event: 'conclude' })
+    return await this.delete(`/courses/${courseId}`, { event: 'conclude' })
   }
 
   // GRADING STANDARDS
   public async getGradingStandards (accountId?: CanvasID): Promise<CanvasGradingStandard[]> {
     if (!accountId) accountId = (await this.getRootAccount()).id
     if (!accountId) return []
-    return this.getall(`/accounts/${accountId}/grading_standards`)
+    return await this.getall(`/accounts/${accountId}/grading_standards`)
   }
 
   // SECTIONS
   public async courseSections (courseId?: CanvasID): Promise<CanvasSection[]> {
     if (!courseId) return []
-    return this.getall(`/courses/${courseId}/sections`)
+    return await this.getall(`/courses/${courseId}/sections`)
   }
 
   public async getSection (id: CanvasID|SpecialSectionID): Promise<CanvasSection> {
     throwUnlessValidId(id, 'sis_section_id')
-    return this.get(`/sections/${id}`)
+    return await this.get(`/sections/${id}`)
   }
 
   public async getSectionBySIS (sisId: SISSectionID) {
-    return this.getSection(`sis_section_id:${sisId}`)
+    return await this.getSection(`sis_section_id:${sisId}`)
   }
 
   public async courseSectionsBatched (courseIds: CanvasID[]): Promise<CanvasSection[]> {
-    return Promise.all(courseIds.map(id => this.courseSections(id)))
+    return await Promise.all(courseIds.map(id => this.courseSections(id)))
       .then(flatten)
   }
 
   public async createSection (courseId: CanvasID, sectionPayload: CanvasSectionPayload): Promise<CanvasSection> {
-    return this.post(`/courses/${courseId}/sections`, sectionPayload)
+    return await this.post(`/courses/${courseId}/sections`, sectionPayload)
   }
 
   public async createSections (courseId: CanvasID, sectionPayloads: CanvasSectionPayload[]): Promise<CanvasSection[]> {
-    return Promise.all(sectionPayloads.map((payload: CanvasSectionPayload) => this.createSection(courseId, payload)))
+    return await Promise.all(sectionPayloads.map((payload: CanvasSectionPayload) => this.createSection(courseId, payload)))
   }
 
   public async deleteSection (id: CanvasID|SpecialSectionID) {
@@ -246,29 +247,29 @@ export class CanvasAPI {
   }
 
   public async deleteSectionBySIS (sisId: SISSectionID) {
-    return this.deleteSection(`sis_section_id:${sisId}`)
+    return await this.deleteSection(`sis_section_id:${sisId}`)
   }
 
   public async removeSISFromSection (id: CanvasID|SpecialSectionID): Promise<CanvasSection> {
     throwUnlessValidId(id, 'sis_section_id')
-    return this.put(`/sections/${id}`, CanvasSectionPayload.asVoidSISSectionId())
+    return await this.put(`/sections/${id}`, CanvasSectionPayload.asVoidSISSectionId())
   }
 
   public async removeSISFromSectionBySIS (sisId: SISSectionID) {
-    return this.removeSISFromSection(`sis_section_id:${sisId}`)
+    return await this.removeSISFromSection(`sis_section_id:${sisId}`)
   }
 
   public async removeSISFromSectionsBySIS (sisIds: SISSectionID[]) {
-    return Promise.all(sisIds.map(sisId => this.removeSISFromSectionBySIS(sisId)))
+    return await Promise.all(sisIds.map(sisId => this.removeSISFromSectionBySIS(sisId)))
   }
 
   public async sectionExists (id: CanvasID|SpecialSectionID) {
     throwUnlessValidId(id, 'sis_section_id')
-    return this.head(`/sections/${id}`)
+    return await this.head(`/sections/${id}`)
   }
 
   public async sectionsExist (ids: (CanvasID|SpecialSectionID)[]) {
-    return Promise.all(ids.map(id => this.sectionExists(id)))
+    return await Promise.all(ids.map(id => this.sectionExists(id)))
   }
 
   public sectionExistsBySIS (sisId: SISSectionID) {
@@ -291,41 +292,41 @@ export class CanvasAPI {
 
   public async getCourseEnrollments (id: CanvasID|SpecialCourseID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
     throwUnlessValidId(id, 'sis_course_id')
-    return this.getall(`/courses/${id}/enrollments`, this.enrollmentParams(params))
+    return await this.getall(`/courses/${id}/enrollments`, this.enrollmentParams(params))
   }
 
   public async getSectionEnrollments (id: CanvasID|SpecialSectionID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
     throwUnlessValidId(id, 'sis_section_id')
-    return this.getall(`/sections/${id}/enrollments`, this.enrollmentParams(params))
+    return await this.getall(`/sections/${id}/enrollments`, this.enrollmentParams(params))
   }
 
   public async getSectionEnrollmentsBySIS (sisId: SISSectionID, params?: CanvasEnrollmentParams): Promise<CanvasEnrollment[]> {
-    return this.getSectionEnrollments(`sis_section_id:${sisId}`, params)
+    return await this.getSectionEnrollments(`sis_section_id:${sisId}`, params)
   }
 
   public async getUserEnrollments (userId?: CanvasID|SpecialUserID, params?: Omit<CanvasEnrollmentParams, 'user_id'>): Promise<CanvasEnrollment[]> {
     userId && throwUnlessValidUserId(userId)
-    return this.getall(`/users/${userId ?? 'self'}/enrollments`, this.enrollmentParams(params))
+    return await this.getall(`/users/${userId ?? 'self'}/enrollments`, this.enrollmentParams(params))
   }
 
   public async createEnrollment (courseId: CanvasID, enrollmentPayload: CanvasEnrollmentPayload) {
-    return this.post(`/courses/${courseId}/enrollments`, enrollmentPayload)
+    return await this.post(`/courses/${courseId}/enrollments`, enrollmentPayload)
   }
 
   public async deactivateEnrollmentFromSection (enrollment: CanvasEnrollment): Promise<CanvasEnrollment> {
-    return this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'deactivate' })
+    return await this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'deactivate' })
   }
 
   public async deactivateAllEnrollmentsFromSectionsBySis (sisIds: SISSectionID[]) {
     const enrollments = await Promise.all(sisIds.map(async (sisId) => {
-      return this.getSectionEnrollmentsBySIS(sisId)
+      return await this.getSectionEnrollmentsBySIS(sisId)
     }))
 
-    return Promise.all(flatten(enrollments).map(async (enrollment: CanvasEnrollment) => this.deactivateEnrollmentFromSection(enrollment)))
+    return await Promise.all(flatten(enrollments).map(async (enrollment: CanvasEnrollment) => await this.deactivateEnrollmentFromSection(enrollment)))
   }
 
   public async deleteEnrollmentFromSection (enrollment: CanvasEnrollment): Promise<CanvasEnrollment> {
-    return this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'delete' })
+    return await this.delete(`/courses/${enrollment.course_id}/enrollments/${enrollment.id}`, { task: 'delete' })
   }
 
   // TERM
@@ -349,7 +350,7 @@ export class CanvasAPI {
   }
 
   public async getEnrollmentTermBySis (accountId: CanvasID, sisTermId: SISTermID): Promise<CanvasEnrollmentTerm> {
-    return this.getEnrollmentTerm(accountId, `sis_term_id:${sisTermId}`)
+    return await this.getEnrollmentTerm(accountId, `sis_term_id:${sisTermId}`)
   }
 
   public async createEnrollmentTerm (accountId: CanvasID|undefined, enrollmentTermPayload: CanvasEnrollmentTermPayload) {
@@ -361,28 +362,28 @@ export class CanvasAPI {
   // User
   public async getUser (id?: CanvasID|SpecialUserID) {
     id && throwUnlessValidUserId(id)
-    return this.get(`/users/${id ?? 'self'}`)
+    return await this.get(`/users/${id ?? 'self'}`)
   }
 
   public async updateUser (id: CanvasID|SpecialUserID|'self', payload: CanvasUserUpdatePayload) {
     throwUnlessValidUserId(id)
-    return this.put(`/users/${id}`, payload)
+    return await this.put(`/users/${id}`, payload)
   }
 
   // External Tools
   public async getExternalTools (accountId?: CanvasID): Promise<ExternalTool[]> {
     if (!accountId) accountId = (await this.getRootAccount()).id
     if (!accountId) return []
-    return this.getall(`/accounts/${accountId}/external_tools`)
+    return await this.getall(`/accounts/${accountId}/external_tools`)
   }
 
   public async createExternalTool (accountId: CanvasID|undefined, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
     if (!accountId) accountId = (await this.getRootAccount()).id
     if (!accountId) throw new Error('Tried to create an external tool with no account ID and root account could not be determined.')
-    return this.post(`/accounts/${accountId}/external_tools`, externalToolPayload)
+    return await this.post(`/accounts/${accountId}/external_tools`, externalToolPayload)
   }
 
   public async editExternalTool (accountId: CanvasID, toolId: CanvasID, externalToolPayload: Partial<ExternalToolPayload>): Promise<ExternalTool> {
-    return this.put(`/accounts/${accountId}/external_tools/${toolId}`, externalToolPayload)
+    return await this.put(`/accounts/${accountId}/external_tools/${toolId}`, externalToolPayload)
   }
 }
