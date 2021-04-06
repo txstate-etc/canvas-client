@@ -8,12 +8,13 @@ import qs from 'qs'
 import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasUserUpdatePayload, CanvasCourseListFilters, ICanvasEnrollmentTerm, CanvasEnrollmentTermPayload, CanvasEnrollmentTermParams, CanvasCourseIncludes } from './interfaces'
 import { throwUnlessValidId, throwUnlessValidUserId } from './utils/utils'
 import { ExternalTool, ExternalToolPayload } from './interfaces/externaltool'
+import { GraphQLError } from './utils/errors'
 
 export class CanvasConnector {
   private service: AxiosInstance
   private rateLimit = pLimit(10)
 
-  constructor (canvasUrl: string, token?: string, options: CanvasAPIOptions = {}) {
+  constructor (protected canvasUrl: string, token?: string, options: CanvasAPIOptions = {}) {
     const maxConnections = options.maxConnections ?? 10
     this.rateLimit = pLimit(maxConnections)
     this.service = Axios.create({
@@ -86,6 +87,12 @@ export class CanvasConnector {
       }
     })
   }
+
+  async graphql (query: string, variables: any) {
+    const res = await this.post(this.canvasUrl + '/api/graphql', { query, variables })
+    if (res.errors?.length) throw new GraphQLError(res.errors[0].message, res.errors)
+    return res.data
+  }
 }
 
 interface CanvasAPIOptions {
@@ -128,7 +135,10 @@ export class CanvasAPI {
   }
 
   async head (url: string): Promise<boolean> {
-    return this.getConnector().head(url)
+  }
+
+  async graphql (query: string, variables: any) {
+    return await this.getConnector().graphql(query, variables)
   }
 
   // DEFAULTS
