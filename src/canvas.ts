@@ -5,7 +5,7 @@ import range from 'lodash/range'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasUserUpdatePayload, CanvasCourseListFilters, ICanvasEnrollmentTerm, CanvasEnrollmentTermPayload, CanvasEnrollmentTermParams, CanvasCourseIncludes } from './interfaces'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasUserUpdatePayload, CanvasCourseListFilters, ICanvasEnrollmentTerm, CanvasEnrollmentTermPayload, CanvasEnrollmentTermParams, CanvasCourseIncludes, CanvasCourseUsersParams, CanvasUser } from './interfaces'
 import { throwUnlessValidId, throwUnlessValidUserId } from './utils/utils'
 import { ExternalTool, ExternalToolPayload } from './interfaces/externaltool'
 import { GraphQLError } from './utils/errors'
@@ -138,8 +138,8 @@ export class CanvasAPI {
     return await this.getConnector().head(url)
   }
 
-  async graphql (query: string, variables: any) {
-    return await this.getConnector().graphql(query, variables)
+  async graphql <ResponseType = any> (query: string, variables: any) {
+    return await this.getConnector().graphql(query, variables) as ResponseType
   }
 
   // DEFAULTS
@@ -201,6 +201,11 @@ export class CanvasAPI {
 
   public async concludeCourse (courseId: CanvasID) {
     return await this.delete(`/courses/${courseId}`, { event: 'conclude' })
+  }
+
+  public async getCourseUsers (courseId: CanvasID, params?: CanvasCourseUsersParams) {
+    const users = await this.getall(`/api/v1/courses/${courseId}/users`, params)
+    return users.map(u => new CanvasUser(u))
   }
 
   // GRADING STANDARDS
@@ -362,7 +367,7 @@ export class CanvasAPI {
   // User
   public async getUser (id?: CanvasID|SpecialUserID) {
     id && throwUnlessValidUserId(id)
-    return await this.get(`/users/${id ?? 'self'}`)
+    return await this.get(`/users/${id ?? 'self'}`) as CanvasUser
   }
 
   public async updateUser (id: CanvasID|SpecialUserID|'self', payload: CanvasUserUpdatePayload) {

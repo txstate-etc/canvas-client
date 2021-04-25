@@ -211,3 +211,13 @@ export interface CanvasCourseListFilters {
   starts_before?: Date
   ends_after?: Date
 }
+
+export interface CanvasCourseUsersParams {
+  search_term?: string
+  sort?: 'username'|'last_login'|'email'|'sis_id'
+  enrollment_role_id?: number|string
+  enrollment_type?: CanvasEnrollmentShortType[]
+  include?: ('enrollments'|'locked'|'avatar_url'|'bio'|'test_student'|'custom_links'|'current_grading_period_scores'|'uuid')[]
+  user_ids?: (string|number)[]
+  enrollment_state?: ('active'|'invited'|'rejected'|'completed'|'inactive')[]
+}
