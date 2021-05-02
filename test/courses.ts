@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { CanvasEnrollmentShortType } from '../src/interfaces'
+import { CanvasCourse, CanvasEnrollmentShortType } from '../src/interfaces'
 import { DateTime } from 'luxon'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -11,13 +11,19 @@ describe('courses', function () {
     const courses = await canvasAPI.getUserCourses()
     expect(courses).to.have.length.greaterThan(0)
   })
+  let selfcourse: CanvasCourse
   it('should retrieve current courses that a user is teaching', async () => {
     const courses = await canvasAPI.getUserCourses('self', { roles: [CanvasEnrollmentShortType.teacher] })
     expect(courses).to.have.length.greaterThan(0)
+    selfcourse = courses[0]
     for (const course of courses) {
       expect(course.enrollments).to.have.length.greaterThan(0)
       expect((course.enrollments ?? []).map(e => e.type)).to.include(CanvasEnrollmentShortType.teacher)
     }
+  })
+  it('should retrieve course users', async () => {
+    const users = await canvasAPI.getCourseUsers(selfcourse.id)
+    expect(users).to.have.length.greaterThan(0)
   })
   it('should retrieve more than 100 courses in the root account', async () => {
     const now = DateTime.local()

@@ -204,7 +204,7 @@ export class CanvasAPI {
   }
 
   public async getCourseUsers (courseId: CanvasID, params?: CanvasCourseUsersParams) {
-    const users = await this.getall(`/api/v1/courses/${courseId}/users`, params)
+    const users = await this.getall(`/courses/${courseId}/users`, params)
     return users.map(u => new CanvasUser(u))
   }
 
