@@ -1,5 +1,4 @@
 import { CanvasID } from '.'
-import { CanvasWorkflowState } from './course'
 
 export enum CanvasAssignmentSubmissionType {
   discussion_topic = 'discussion_topic',
@@ -35,7 +34,7 @@ export interface CanvasAssignmentOverride {
   unlock_at: Date|string
   lock_at: Date|string
 }
-interface ICanvasAssignmentNew {
+interface CanvasAssignmentNew {
   name: string
   position?: number
   submission_types?: CanvasAssignmentSubmissionType[]
@@ -74,49 +73,7 @@ interface ICanvasAssignmentNew {
   allowed_attempts?: number
   annotatable_attachment_id?: CanvasID
 }
-export interface CanvasAssignmentNew extends ICanvasAssignmentNew {}
-export class CanvasAssignmentNew {
-  constructor (assignment: ICanvasAssignmentNew) {
-    this.name = assignment.name
-    this.position = assignment.position
-    this.submission_types = assignment.submission_types
-    this.allowed_extensions = assignment.allowed_extensions
-    this.turnitin_enabled = assignment.turnitin_enabled
-    this.vericite_enabled = assignment.vericite_enabled
-    this.turnitin_settings = assignment.turnitin_settings
-    this.integration_data = assignment.integration_data
-    this.integration_id = assignment.integration_id
-    this.peer_reviews = assignment.peer_reviews
-    this.automatic_peer_reviews = assignment.automatic_peer_reviews
-    this.notify_of_update = assignment.notify_of_update
-    this.group_category_id = assignment.group_category_id
-    this.grade_group_students_individually = assignment.grade_group_students_individually
-    this.external_tool_tag_attributes = assignment.external_tool_tag_attributes
-    this.points_possible = assignment.points_possible
-    this.grading_type = assignment.grading_type
-    this.due_at = assignment.due_at
-    this.lock_at = assignment.lock_at
-    this.unlock_at = assignment.unlock_at
-    this.description = assignment.description
-    this.assignment_group_id = assignment.assignment_group_id
-    this.assignment_overrides = assignment.assignment_overrides
-    this.only_visible_to_overrides = assignment.only_visible_to_overrides
-    this.published = assignment.published
-    this.grading_standard_id = assignment.grading_standard_id
-    this.omit_from_final_grade = assignment.omit_from_final_grade
-    this.quiz_lti = assignment.quiz_lti
-    this.moderated_grading = assignment.moderated_grading
-    this.grader_count = assignment.grader_count
-    this.final_grader_id = assignment.final_grader_id
-    this.grader_comments_visible_to_graders = assignment.grader_comments_visible_to_graders
-    this.graders_anonymous_to_graders = assignment.graders_anonymous_to_graders
-    this.graders_names_visible_to_final_grader = assignment.graders_names_visible_to_final_grader
-    this.anonymous_grading = assignment.anonymous_grading
-    this.allowed_attempts = assignment.allowed_attempts
-    this.annotatable_attachment_id = assignment.annotatable_attachment_id
-  }
-}
-export class CanvasAssignment extends CanvasAssignmentNew {
+export interface CanvasAssignment extends CanvasAssignmentNew {
   id: CanvasID
   created_at: Date
   updated_at: Date
@@ -138,36 +95,9 @@ export class CanvasAssignment extends CanvasAssignmentNew {
 
   // this appears to be undocumented, but when deleting an assignment, the API responds
   // with the Assignment object that's being deleted, with workflow_state:deleted
-  workflow_state?: CanvasWorkflowState
-
-  constructor (apiresponse: any) {
-    super(apiresponse)
-    this.id = apiresponse.id
-    this.created_at = apiresponse.created_at
-    this.updated_at = apiresponse.updated_at
-    this.has_overrides = apiresponse.has_overrides
-    this.course_id = apiresponse.course_id
-    this.html_url = apiresponse.html_url
-    this.submissions_download_url = apiresponse.submissions_download_url
-    this.due_date_required = apiresponse.due_date_required
-    this.max_name_length = apiresponse.max_name_length
-    this.peer_review_count = apiresponse.peer_review_count
-    this.peer_reviews_assign_at = apiresponse.peer_reviews_assign_at
-    this.intra_group_peer_reviews = apiresponse.intra_group_peer_reviews
-    this.needs_grading_count = apiresponse.needs_grading_count
-    this.has_submitted_submissions = apiresponse.has_submitted_submissions
-    this.unpublishable = apiresponse.unpublishable
-    this.locked_for_user = apiresponse.locked_for_user
-    this.grader_names_visible_to_final_grader = apiresponse.grader_names_visible_to_final_grader
-    this.post_manually = apiresponse.post_manually
-    this.workflow_state = apiresponse.workflow_state
-  }
+  workflow_state?: string
 }
 
-export class CanvasAssignmentPayload {
+export interface CanvasAssignmentPayload {
   assignment: CanvasAssignmentNew
-
-  constructor (assignment: ICanvasAssignmentNew) {
-    this.assignment = new CanvasAssignmentNew(assignment)
-  }
 }

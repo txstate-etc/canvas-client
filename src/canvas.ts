@@ -164,11 +164,11 @@ export class CanvasAPI {
   }
 
   public async getCourseAssignment (courseId: CanvasID, assignmentId: CanvasID): Promise<CanvasAssignment> {
-    return new CanvasAssignment(await this.get(`/courses/${courseId}/assignments/${assignmentId}`))
+    return await this.get(`/courses/${courseId}/assignments/${assignmentId}`)
   }
 
   public async getCourseAssignments (courseId: CanvasID): Promise<CanvasAssignment[]> {
-    return (await this.getall(`/courses/${courseId}/assignments`)).map(a => new CanvasAssignment(a))
+    return await this.getall(`/courses/${courseId}/assignments`)
   }
 
   public async deleteCourseAssignment (courseId: CanvasID, assignmentId: CanvasID): Promise<CanvasAssignment> {
