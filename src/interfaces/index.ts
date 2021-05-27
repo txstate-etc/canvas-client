@@ -1,11 +1,14 @@
 export * from './account'
+export * from './assignment'
 export * from './course'
 export * from './enrollment'
+export * from './grade'
 export * from './gradingstandard'
 export * from './section'
 export * from './term'
 export * from './user'
 export * from './externaltool'
+export * from './progress'
 
 export type CanvasID = number
 export type SISUserID = string
