@@ -1,11 +1,10 @@
 import { CanvasID } from '.'
 
-export enum CanvasWorkflowState {
+export enum CanvasProgressWorkflowState {
   queued = 'queued',
   running = 'running',
   completed = 'completed',
-  failed = 'failed',
-  deleted = 'deleted'
+  failed = 'failed'
 }
 interface ICanvasProgress {
 
@@ -26,7 +25,7 @@ interface ICanvasProgress {
   completion: number
 
   // the state of the job
-  workflow_state: CanvasWorkflowState
+  workflow_state: CanvasProgressWorkflowState
 
   // the time the job was created / last updated
   created_at: Date
