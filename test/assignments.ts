@@ -15,19 +15,19 @@ describe('assignments', function () {
   let newAssignment: CanvasAssignment
   it('should be able to create a new assignment with minimal details for a course the user is teaching', async () => {
     newAssignment = await canvasAPI.createCourseAssignment(selfcourse.id, {
-      assignment: {
-        name: 'assignment created during canvas-client automated testing'
-      }
+      name: 'assignment created during canvas-client automated testing'
     })
-    console.log(newAssignment)
-    console.log(JSON.stringify(newAssignment))
     expect(newAssignment?.id).to.be.greaterThan(0)
   })
 
-  let createdAssignment: CanvasAssignment
   it('should be able to retrieve the newly created assignment', async () => {
-    createdAssignment = await canvasAPI.getCourseAssignment(selfcourse.id, newAssignment.id)
+    const createdAssignment = await canvasAPI.getCourseAssignment(selfcourse.id, newAssignment.id)
     expect(createdAssignment?.id).to.equal(newAssignment.id)
+  })
+
+  it('should be able to delete the newly created assignment', async () => {
+    const deletedAssignment = await canvasAPI.deleteCourseAssignment(selfcourse.id, newAssignment.id)
+    expect(deletedAssignment).to.have.property('workflow_state', 'deleted')
   })
 
   it('should be able to retrieve list of assignments for a course user is teaching', async () => {
@@ -47,10 +47,8 @@ describe('assignments', function () {
   let myAssignment: CanvasAssignment
   it('should be able to create a new assignment with integration details', async () => {
     myAssignment = await canvasAPI.createCourseAssignment(selfcourse.id, {
-      assignment: {
-        name: 'assignment#2 created during canvas-client automated testing',
-        ...integrationDetails
-      }
+      name: 'assignment#2 created during canvas-client automated testing',
+      ...integrationDetails
     })
   })
 
@@ -62,7 +60,7 @@ describe('assignments', function () {
     expect(myCreatedAssignment?.integration_data).to.deep.equal(integrationDetails.integration_data)
   })
 
-  it('should be able to delete assignments', async () => {
+  it('should be able to delete the assignment that contains integration details', async () => {
     const deletedAssignment = await canvasAPI.deleteCourseAssignment(selfcourse.id, myAssignment.id)
     expect(deletedAssignment).to.have.property('workflow_state', 'deleted')
   })

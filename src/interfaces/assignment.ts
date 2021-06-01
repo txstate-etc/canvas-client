@@ -21,6 +21,18 @@ export enum CanvasAssignmentGradingType {
   points = 'points'
 }
 
+export enum CanvasAssignmentSubmissionWorkflowState {
+  submitted = 'submitted',
+  unsubmitted = 'unsubmitted',
+  graded = 'graded',
+  pending_review = 'pending_review'
+}
+
+export enum CanvasLatePolicyType {
+  late = 'late',
+  missing = 'missing',
+  none = 'none'
+}
 export interface CanvasAssignmentOverride {
   id: CanvasID
   assignment_id: CanvasID
@@ -34,7 +46,7 @@ export interface CanvasAssignmentOverride {
   unlock_at: Date|string
   lock_at: Date|string
 }
-interface CanvasAssignmentNew {
+export interface CanvasAssignmentNew {
   name: string
   position?: number
   submission_types?: CanvasAssignmentSubmissionType[]
@@ -97,7 +109,26 @@ export interface CanvasAssignment extends CanvasAssignmentNew {
   // with the Assignment object that's being deleted, with workflow_state:deleted
   workflow_state?: string
 }
-
-export interface CanvasAssignmentPayload {
-  assignment: CanvasAssignmentNew
+export interface CanvasAssignmentSubmissionNew {
+  course_id: CanvasID
+  assignment_id: CanvasID
+  user_id: CanvasID
+  posted_grade?: string
+  excused?: boolean
+  late_policy_status?: CanvasLatePolicyType
+  seconds_late_override?: number
+}
+export interface CanvasAssignmentSubmission extends CanvasAssignmentSubmissionNew {
+  id: CanvasID
+  grade_matches_current_submission: boolean
+  workflow_state: CanvasAssignmentSubmissionWorkflowState
+  posted_at: Date
+  grader_id: CanvasID
+  preview_url: string
+  score: number
+  graded_at: Date
+  entered_score: number
+  entered_grade: string
+  grade: string
+  attempt?: string
 }
