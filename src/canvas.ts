@@ -5,11 +5,10 @@ import range from 'lodash/range'
 import pLimit from 'p-limit'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
-import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasUserUpdatePayload, CanvasCourseListFilters, ICanvasEnrollmentTerm, CanvasEnrollmentTermPayload, CanvasEnrollmentTermParams, CanvasCourseIncludes, CanvasCourseUsersParams, CanvasUser } from './interfaces'
+import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasUserUpdatePayload, CanvasCourseListFilters, ICanvasEnrollmentTerm, CanvasEnrollmentTermPayload, CanvasEnrollmentTermParams, CanvasCourseIncludes, CanvasCourseUsersParams, CanvasUser, CanvasAssignment, CanvasAssignmentNew, CanvasAssignmentSubmission, CanvasAssignmentSubmissionNew, UserDisplay } from './interfaces'
 import { throwUnlessValidId, throwUnlessValidUserId } from './utils/utils'
 import { ExternalTool, ExternalToolPayload } from './interfaces/externaltool'
 import { GraphQLError } from './utils/errors'
-
 export class CanvasConnector {
   private service: AxiosInstance
   private rateLimit = pLimit(10)
@@ -206,6 +205,38 @@ export class CanvasAPI {
   public async getCourseUsers (courseId: CanvasID, params?: CanvasCourseUsersParams) {
     const users = await this.getall(`/courses/${courseId}/users`, params)
     return users.map(u => new CanvasUser(u))
+  }
+
+  // ASSIGNMENTS
+  public async createCourseAssignment (courseId: CanvasID, assignment: CanvasAssignmentNew): Promise<CanvasAssignment> {
+    return await this.post(`/courses/${courseId}/assignments`, { assignment })
+  }
+
+  public async getCourseAssignment (courseId: CanvasID, assignmentId: CanvasID): Promise<CanvasAssignment> {
+    return await this.get(`/courses/${courseId}/assignments/${assignmentId}`)
+  }
+
+  public async getCourseAssignments (courseId: CanvasID): Promise<CanvasAssignment[]> {
+    return await this.getall(`/courses/${courseId}/assignments`)
+  }
+
+  public async deleteCourseAssignment (courseId: CanvasID, assignmentId: CanvasID): Promise<CanvasAssignment> {
+    return await this.delete(`/courses/${courseId}/assignments/${assignmentId}`)
+  }
+
+  public async getGradeableStudents (courseId: CanvasID, assignmentId: CanvasID): Promise<UserDisplay[]> {
+    return await this.getall(`/courses/${courseId}/assignments/${assignmentId}/gradeable_students`)
+  }
+
+  // ASSIGNMENT SUBMISSIONS (GRADES)
+  public async getAssignmentSubmission (courseId: CanvasID, assignmentId: CanvasID, userId: CanvasID): Promise<CanvasAssignmentSubmission> {
+    return await this.get(`/courses/${courseId}/assignments/${assignmentId}/submissions/${userId}`)
+  }
+
+  public async updateAssignmentSubmission (submission: CanvasAssignmentSubmissionNew): Promise<CanvasAssignmentSubmission> {
+    return await this.put(
+      `/courses/${submission.course_id}/assignments/${submission.assignment_id}/submissions/${submission.user_id}`,
+      { submission })
   }
 
   // GRADING STANDARDS

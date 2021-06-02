@@ -64,7 +64,7 @@ export class CanvasCourseNew {
   }
 }
 
-export enum CanvasWorkflowState {
+export enum CanvasCourseWorkflowState {
   Available = 'available',
   Unpublished = 'unpublished',
   Completed = 'completed',
@@ -78,7 +78,7 @@ export class CanvasCourse extends CanvasCourseNew {
   root_account_id: CanvasID
   created_at: Date
   sis_import_id: CanvasID|null
-  workflow_state: CanvasWorkflowState
+  workflow_state: CanvasCourseWorkflowState
   term_id?: CanvasID
   enrollment_term_id: CanvasID
   storage_quota_mb: number
@@ -116,7 +116,7 @@ export class CanvasCourse extends CanvasCourseNew {
   }
 
   isPublished () {
-    return this.workflow_state === CanvasWorkflowState.Available
+    return this.workflow_state === CanvasCourseWorkflowState.Available
   }
 }
 
