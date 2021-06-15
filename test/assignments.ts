@@ -23,16 +23,17 @@ describe('assignments', function () {
   it('should be able to retrieve the newly created assignment', async () => {
     const createdAssignment = await canvasAPI.getCourseAssignment(selfcourse.id, newAssignment.id)
     expect(createdAssignment?.id).to.equal(newAssignment.id)
-  })
-
-  it('should be able to delete the newly created assignment', async () => {
-    const deletedAssignment = await canvasAPI.deleteCourseAssignment(selfcourse.id, newAssignment.id)
-    expect(deletedAssignment).to.have.property('workflow_state', 'deleted')
+    expect(createdAssignment.created_at).to.be.a('Date')
   })
 
   it('should be able to retrieve list of assignments for a course user is teaching', async () => {
     const courseAssignments = await canvasAPI.getCourseAssignments(selfcourse.id)
     expect(courseAssignments).to.have.length.greaterThan(0)
+  })
+
+  it('should be able to delete the newly created assignment', async () => {
+    const deletedAssignment = await canvasAPI.deleteCourseAssignment(selfcourse.id, newAssignment.id)
+    expect(deletedAssignment).to.have.property('workflow_state', 'deleted')
   })
 
   const integrationDetails = {

@@ -84,6 +84,8 @@ export class CanvasCourse extends CanvasCourseNew {
   storage_quota_mb: number
   storage_quota_used_mb: number
   teachers?: UserDisplay[]
+  /* only available when include[]=total_students was used on the request */
+  total_students?: number
   needs_grading_count?: number
   enrollments?: CanvasEnrollmentDisplay[]
   sections?: CanvasSection[]
@@ -106,6 +108,7 @@ export class CanvasCourse extends CanvasCourseNew {
     this.storage_quota_mb = apiresponse.storage_quota_mb
     this.storage_quota_used_mb = apiresponse.storage_quota_used_mb || 0
     this.teachers = apiresponse.teachers || null
+    this.total_students = apiresponse.total_students
     this.needs_grading_count = apiresponse.needs_grading_count
     this.enrollments = apiresponse.enrollments
     this.sections = apiresponse.sections
@@ -145,7 +148,8 @@ export enum CanvasCourseIncludes {
   Teachers = 'teachers',
   Sections = 'sections',
   Term = 'term',
-  Concluded = 'concluded'
+  Concluded = 'concluded',
+  TotalStudents = 'total_students'
 }
 
 export enum CanvasCourseState {

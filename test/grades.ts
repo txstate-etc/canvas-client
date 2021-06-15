@@ -3,14 +3,14 @@ import { expect } from 'chai'
 import dotenv from 'dotenv'
 dotenv.config()
 // eslint-disable-next-line import/first
-import { canvasAPI, CanvasAssignment, CanvasAssignmentGradingType, CanvasAssignmentSubmissionType, CanvasCourse, CanvasEnrollmentShortType } from '../src'
+import { canvasAPI, CanvasAssignment, CanvasAssignmentGradingType, CanvasAssignmentSubmissionType, CanvasCourse, CanvasCourseIncludes, CanvasEnrollmentShortType } from '../src'
 
 describe('grades', function () {
   let course: CanvasCourse
   it('requires the user to have a course they are teaching', async () => {
-    const courses = await canvasAPI.getUserCourses('self', { roles: [CanvasEnrollmentShortType.teacher] })
+    const courses = await canvasAPI.getUserCourses('self', { roles: [CanvasEnrollmentShortType.teacher], include: [CanvasCourseIncludes.TotalStudents] })
     expect(courses).to.have.length.greaterThan(0)
-    course = courses[0]
+    course = courses.sort((a, b) => b.total_students! - a.total_students!)[0]
   })
 
   const assignmentName = 'assignment created during canvas-client automated testing of grade submissions'

@@ -209,19 +209,22 @@ export class CanvasAPI {
 
   // ASSIGNMENTS
   public async createCourseAssignment (courseId: CanvasID, assignment: CanvasAssignmentNew): Promise<CanvasAssignment> {
-    return await this.post(`/courses/${courseId}/assignments`, { assignment })
+    const assn = await this.post(`/courses/${courseId}/assignments`, { assignment })
+    return new CanvasAssignment(assn)
   }
 
   public async getCourseAssignment (courseId: CanvasID, assignmentId: CanvasID): Promise<CanvasAssignment> {
-    return await this.get(`/courses/${courseId}/assignments/${assignmentId}`)
+    const assn = await this.get(`/courses/${courseId}/assignments/${assignmentId}`)
+    return new CanvasAssignment(assn)
   }
 
   public async getCourseAssignments (courseId: CanvasID): Promise<CanvasAssignment[]> {
-    return await this.getall(`/courses/${courseId}/assignments`)
+    return (await this.getall(`/courses/${courseId}/assignments`)).map(assn => new CanvasAssignment(assn))
   }
 
   public async deleteCourseAssignment (courseId: CanvasID, assignmentId: CanvasID): Promise<CanvasAssignment> {
-    return await this.delete(`/courses/${courseId}/assignments/${assignmentId}`)
+    const assn = await this.delete(`/courses/${courseId}/assignments/${assignmentId}`)
+    return new CanvasAssignment(assn)
   }
 
   public async getGradeableStudents (courseId: CanvasID, assignmentId: CanvasID): Promise<UserDisplay[]> {

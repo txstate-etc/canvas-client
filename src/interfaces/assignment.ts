@@ -85,7 +85,8 @@ export interface CanvasAssignmentNew {
   allowed_attempts?: number
   annotatable_attachment_id?: CanvasID
 }
-export interface CanvasAssignment extends CanvasAssignmentNew {
+interface ICanvasAssignment extends CanvasAssignmentNew {
+  submission_types: CanvasAssignmentSubmissionType[]
   id: CanvasID
   created_at: Date
   updated_at: Date
@@ -108,6 +109,17 @@ export interface CanvasAssignment extends CanvasAssignmentNew {
   // this appears to be undocumented, but when deleting an assignment, the API responds
   // with the Assignment object that's being deleted, with workflow_state:deleted
   workflow_state?: string
+}
+export interface CanvasAssignment extends ICanvasAssignment {}
+export class CanvasAssignment {
+  constructor (assn: ICanvasAssignment) {
+    Object.assign(this, assn)
+    this.created_at = new Date(assn.created_at)
+    this.updated_at = new Date(assn.updated_at)
+    if (assn.due_at) this.due_at = new Date(assn.due_at)
+    if (assn.unlock_at) this.unlock_at = new Date(assn.unlock_at)
+    if (assn.lock_at) this.lock_at = new Date(assn.lock_at)
+  }
 }
 export interface CanvasAssignmentSubmissionNew {
   course_id: CanvasID
