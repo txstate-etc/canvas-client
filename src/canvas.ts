@@ -2,7 +2,7 @@ import { HttpsAgent } from 'agentkeepalive'
 import Axios, { AxiosInstance } from 'axios'
 import flatten from 'lodash/flatten'
 import range from 'lodash/range'
-import pLimit from 'p-limit'
+import { pLimit } from 'txstate-utils'
 import parselinkheader from 'parse-link-header'
 import qs from 'qs'
 import { CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, CanvasEnrollmentPayload, CanvasCoursePayload, CanvasSectionPayload, CanvasGradingStandard, CanvasID, SpecialUserID, SpecialSectionID, SISSectionID, SISUserID, SpecialCourseID, SISTermID, SpecialTermID, CanvasEnrollmentTerm, CanvasCourseParams, CanvasEnrollmentParams, CanvasCourseSettings, CanvasCourseSettingsUpdate, CanvasUserUpdatePayload, CanvasCourseListFilters, ICanvasEnrollmentTerm, CanvasEnrollmentTermPayload, CanvasEnrollmentTermParams, CanvasCourseIncludes, CanvasCourseUsersParams, CanvasUser, CanvasAssignment, CanvasAssignmentNew, CanvasAssignmentSubmission, CanvasAssignmentSubmissionNew, UserDisplay } from './interfaces'
@@ -53,7 +53,7 @@ export class CanvasConnector {
       }
     } else if (links?.next?.url) {
       while (links?.next?.url) {
-        const res = await this.rateLimit(async () => await this.service.get(links!.next.url))
+        const res = await this.rateLimit(async () => await this.service.get(links!.next!.url))
         ret.push(...res.data)
         links = parselinkheader(res.headers.link)
       }
