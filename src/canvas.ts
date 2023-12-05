@@ -6,15 +6,20 @@ import { GraphQLError } from './utils/errors'
 import { parseLinkHeader } from './utils/parselink'
 export class CanvasConnector {
   private rateLimit = pLimit(10)
-  private restUrl: URL
+  private restUrl: URL | undefined
 
-  constructor (protected canvasUrl: string, protected token?: string, options: CanvasAPIOptions = {}) {
+  constructor (protected canvasUrl?: string, protected token?: string, options: CanvasAPIOptions = {}) {
     const maxConnections = options.maxConnections ?? 10
     this.rateLimit = pLimit(maxConnections)
-    this.restUrl = new URL('/api/v1', canvasUrl)
+    try {
+      this.restUrl = new URL('/api/v1', canvasUrl)
+    } catch {
+      // let it go until later
+    }
   }
 
   async send (method: 'get' | 'post' | 'put' | 'delete' | 'head', url: string, payload: any = {}) {
+    if (this.restUrl == null) throw new Error('Tried to contact Canvas API but no URL was set for canvas.')
     let finalUrl: URL
     try {
       finalUrl = new URL(url) // URL was complete, use it
@@ -110,9 +115,7 @@ export class CanvasAPI {
   private root?: CanvasAccount
 
   constructor (canvasUrl: string | undefined, tokens?: string[], options?: CanvasAPIOptions) {
-    if (!canvasUrl?.length) throw new Error('Instantiated a canvas client with no URL.')
-    if (tokens && !tokens.length) throw new Error('Instantiated a canvas client with an empty token array. If creating the client in the browser and depending on cookies, do not include tokens parameter at all.')
-    if (!tokens) this.connectors = [new CanvasConnector(canvasUrl, undefined, options)]
+    if (!tokens?.length) this.connectors = [new CanvasConnector(canvasUrl, undefined, options)]
     else this.connectors = tokens.map(token => new CanvasConnector(canvasUrl, token, options))
   }
 
