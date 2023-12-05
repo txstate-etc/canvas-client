@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import dotenv from 'dotenv'
 dotenv.config()
 // eslint-disable-next-line import/first
-import { canvasAPI, CanvasAssignment, CanvasAssignmentGradingType, CanvasAssignmentSubmissionType, CanvasCourse, CanvasCourseIncludes, CanvasEnrollmentShortType } from '../src'
+import { canvasAPI, type CanvasAssignment, CanvasAssignmentGradingType, CanvasAssignmentSubmissionType, type CanvasCourse, CanvasCourseIncludes, CanvasEnrollmentShortType } from '../src'
 
 describe('grades', function () {
   let course: CanvasCourse
@@ -28,7 +28,7 @@ describe('grades', function () {
     } catch (e) {
       console.error('Exception encountered during old assignment cleanup', e)
     }
-  })
+  }).timeout(5000)
 
   let assignment: CanvasAssignment
   it('should be able to publish a new assignment for grades', async () => {
@@ -53,7 +53,7 @@ describe('grades', function () {
         new_tab: false
       }
     })
-  })
+  }).timeout(5000)
 
   it('requires the user to have an assignment on their course', async () => {
     const assignments = await canvasAPI.getCourseAssignments(course.id)

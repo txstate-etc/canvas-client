@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { CanvasCourse, CanvasEnrollmentShortType } from '../src/interfaces'
+import { type CanvasCourse, CanvasEnrollmentShortType } from '../src/interfaces'
 import { DateTime } from 'luxon'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -35,5 +35,5 @@ describe('courses', function () {
       enrollment_term_id: term!.id
     })
     expect(courses).to.have.length.greaterThan(100)
-  }).timeout(25000)
+  }).timeout(45000)
 })

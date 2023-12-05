@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import dotenv from 'dotenv'
 dotenv.config()
 // eslint-disable-next-line import/first
-import { canvasAPI, CanvasAssignment, CanvasCourse, CanvasEnrollmentShortType } from '../src'
+import { canvasAPI, type CanvasAssignment, type CanvasCourse, CanvasEnrollmentShortType } from '../src'
 
 describe('assignments', function () {
   let selfcourse: CanvasCourse
