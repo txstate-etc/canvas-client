@@ -238,7 +238,7 @@ export class CanvasAPI {
   }
 
   public async getGradeableStudents (courseId: CanvasID, assignmentId: CanvasID): Promise<UserDisplay[]> {
-    return await this.getall(`/courses/${courseId}/assignments/${assignmentId}/gradeable_students`)
+    return await this.getall(`/courses/${courseId}/assignments/gradeable_students`, { assignment_ids: assignmentId })
   }
 
   // ASSIGNMENT SUBMISSIONS (GRADES)
