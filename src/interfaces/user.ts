@@ -1,4 +1,4 @@
-import { CanvasID, SISUserID } from '.'
+import type { CanvasID, SISUserID } from '.'
 
 interface ICanvasUser {
   id: CanvasID
@@ -9,7 +9,7 @@ interface ICanvasUser {
   sis_import_id?: string | null
   integration_id?: string | null
   login_id: string
-  avatar_url: string
+  avatar_url?: string
   email: string
   locale: string
   effective_locale: string
