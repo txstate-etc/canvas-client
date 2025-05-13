@@ -61,6 +61,8 @@ export class CanvasCourseNew {
     this.syllabus_body = course.syllabus_body
     this.grading_standard_id = course.grading_standard_id
     this.grade_passback_setting = course.grade_passback_setting
+
+    if (course.start_at) this.start_at = course.start_at
   }
 }
 
