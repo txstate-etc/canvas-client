@@ -1,6 +1,6 @@
 import { pLimit, omit, isNotEmpty } from 'txstate-utils'
 import { type CanvasAccount, CanvasCourse, type CanvasSection, type CanvasEnrollment, type CanvasEnrollmentPayload, type CanvasCoursePayload, CanvasSectionPayload, type CanvasGradingStandard, type CanvasID, type SpecialUserID, type SpecialSectionID, type SISSectionID, type SISUserID, type SpecialCourseID, type SISTermID, type SpecialTermID, CanvasEnrollmentTerm, type CanvasCourseParams, type CanvasEnrollmentParams, type CanvasCourseSettings, type CanvasCourseSettingsUpdate, type CanvasUserUpdatePayload, type CanvasCourseListFilters, type ICanvasEnrollmentTerm, type CanvasEnrollmentTermPayload, type CanvasEnrollmentTermParams, CanvasCourseIncludes, type CanvasCourseUsersParams, CanvasUser, CanvasAssignment, type CanvasAssignmentNew, type CanvasAssignmentSubmission, type CanvasAssignmentSubmissionNew, type UserDisplay } from './interfaces'
-import { throwUnlessValidId, throwUnlessValidUserId } from './utils/utils'
+import { stringifyParams, throwUnlessValidId, throwUnlessValidUserId } from './utils/utils'
 import { type ExternalTool, type ExternalToolPayload } from './interfaces/externaltool'
 import { GraphQLError } from './utils/errors'
 import { parseLinkHeader } from './utils/parselink'
@@ -27,7 +27,7 @@ export class CanvasConnector {
       finalUrl = new URL('/api/v1/' + url.replace(/^\//, ''), this.restUrl)
     }
     const isPostOrPut = ['post', 'put'].includes(method)
-    if (!isPostOrPut && isNotEmpty(payload)) finalUrl.search = new URLSearchParams(payload).toString()
+    if (!isPostOrPut && isNotEmpty(payload)) finalUrl.search = stringifyParams(payload)
     const resp = await fetch(finalUrl, {
       method,
       headers: {

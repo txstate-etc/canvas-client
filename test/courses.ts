@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { type CanvasCourse, CanvasEnrollmentShortType } from '../src/interfaces'
+import { type CanvasCourse, CanvasCourseState, CanvasEnrollmentShortType } from '../src/interfaces'
 import { DateTime } from 'luxon'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -21,6 +21,12 @@ describe('courses', function () {
       expect((course.enrollments ?? []).map(e => e.type)).to.include(CanvasEnrollmentShortType.teacher)
     }
   })
+  it('should not retrieve deleted courses when specifying state', async () => {
+    const courses = await canvasAPI.getUserCourses('self', { state: [CanvasCourseState.Available, CanvasCourseState.Completed, CanvasCourseState.Unpublished] })
+    for (const course of courses) {
+      expect(course.workflow_state).to.not.equal(CanvasCourseState.Deleted)
+    }
+  })
   it('should retrieve course users', async () => {
     const users = await canvasAPI.getCourseUsers(selfcourse.id)
     expect(users).to.have.length.greaterThan(0)
@@ -35,5 +41,5 @@ describe('courses', function () {
       enrollment_term_id: term!.id
     })
     expect(courses).to.have.length.greaterThan(100)
-  }).timeout(45000)
+  }).timeout(60000)
 })

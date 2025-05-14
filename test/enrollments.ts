@@ -22,7 +22,7 @@ describe('enrollments', function () {
       expect(enrollment.id).to.be.greaterThan(0)
       expect(enrollment.course_id).to.be.greaterThan(0)
     }
-  }).timeout(15000)
+  }).timeout(30000)
   it('should retrieve enrollments from a user', async () => {
     const enrollments = await canvasAPI.getUserEnrollments('self')
     expect(enrollments).to.have.length.greaterThan(0)
