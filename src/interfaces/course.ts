@@ -1,6 +1,6 @@
-import { CanvasEnrollmentShortType, SpecialTermID, CanvasID, SISCourseID, UserDisplay, CanvasEnrollmentDisplay } from '.'
-import { CanvasSection } from './section'
-import { CanvasEnrollmentTerm } from './term'
+import { type CanvasEnrollmentShortType, type SpecialTermID, type CanvasID, type SISCourseID, type UserDisplay, type CanvasEnrollmentDisplay } from '.'
+import { type CanvasSection } from './section'
+import { type CanvasEnrollmentTerm } from './term'
 
 export interface ICanvasCourseNew {
   name?: string
@@ -19,9 +19,9 @@ export interface ICanvasCourseNew {
   open_enrollment?: boolean
   self_enrollment?: boolean
   restrict_enrollments_to_course_dates?: boolean
-  term_id?: CanvasID|SpecialTermID
+  term_id?: CanvasID | SpecialTermID
   locale?: string
-  enrollment_term_id?: CanvasID|SpecialTermID
+  enrollment_term_id?: CanvasID | SpecialTermID
   sis_course_id?: SISCourseID | null
   integration_id?: string | null
   hide_final_grades?: boolean
@@ -30,7 +30,7 @@ export interface ICanvasCourseNew {
   default_view?: string
   syllabus_body?: string
   grading_standard_id?: CanvasID
-  grade_passback_setting?: string|null
+  grade_passback_setting?: string | null
 }
 
 export interface CanvasCourseNew extends ICanvasCourseNew {}
@@ -63,6 +63,7 @@ export class CanvasCourseNew {
     this.grade_passback_setting = course.grade_passback_setting
 
     if (course.start_at) this.start_at = course.start_at
+    if (course.end_at) this.end_at = course.start_at
   }
 }
 
@@ -79,7 +80,7 @@ export class CanvasCourse extends CanvasCourseNew {
   account_id: CanvasID
   root_account_id: CanvasID
   created_at: Date
-  sis_import_id: CanvasID|null
+  sis_import_id: CanvasID | null
   workflow_state: CanvasCourseWorkflowState
   term_id?: CanvasID
   enrollment_term_id: CanvasID
@@ -207,23 +208,23 @@ export interface CanvasCourseListFilters {
   blueprint_associated?: boolean
   by_teachers?: CanvasID[]
   by_subaccounts?: CanvasID[]
-  state?: ('created'|'claimed'|'available'|'completed'|'deleted'|'all')[]
-  enrollment_term_id?: CanvasID|SpecialTermID
+  state?: ('created' | 'claimed' | 'available' | 'completed' | 'deleted' | 'all')[]
+  enrollment_term_id?: CanvasID | SpecialTermID
   search_term?: string
-  include?: ('syllabus_body'|'term'|'course_progress'|'storage_quota_used_mb'|'total_students'|'teachers'|'account_name'|'concluded')[]
-  sort?: ('course_name'|'sis_course_id'|'teacher'|'account_name')
-  order?: ('asc'|'desc')
-  search_by?: 'course'|'teacher'
+  include?: ('syllabus_body' | 'term' | 'course_progress' | 'storage_quota_used_mb' | 'total_students' | 'teachers' | 'account_name' | 'concluded')[]
+  sort?: ('course_name' | 'sis_course_id' | 'teacher' | 'account_name')
+  order?: ('asc' | 'desc')
+  search_by?: 'course' | 'teacher'
   starts_before?: Date
   ends_after?: Date
 }
 
 export interface CanvasCourseUsersParams {
   search_term?: string
-  sort?: 'username'|'last_login'|'email'|'sis_id'
-  enrollment_role_id?: number|string
+  sort?: 'username' | 'last_login' | 'email' | 'sis_id'
+  enrollment_role_id?: number | string
   enrollment_type?: CanvasEnrollmentShortType[]
-  include?: ('enrollments'|'locked'|'avatar_url'|'bio'|'test_student'|'custom_links'|'current_grading_period_scores'|'uuid')[]
-  user_ids?: (string|number)[]
-  enrollment_state?: ('active'|'invited'|'rejected'|'completed'|'inactive')[]
+  include?: ('enrollments' | 'locked' | 'avatar_url' | 'bio' | 'test_student' | 'custom_links' | 'current_grading_period_scores' | 'uuid')[]
+  user_ids?: (string | number)[]
+  enrollment_state?: ('active' | 'invited' | 'rejected' | 'completed' | 'inactive')[]
 }
