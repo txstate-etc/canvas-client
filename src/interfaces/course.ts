@@ -63,7 +63,7 @@ export class CanvasCourseNew {
     this.grade_passback_setting = course.grade_passback_setting
 
     if (course.start_at) this.start_at = course.start_at
-    if (course.end_at) this.end_at = course.start_at
+    if (course.end_at) this.end_at = course.end_at
   }
 }
 
