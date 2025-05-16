@@ -26,9 +26,14 @@ function parseLink (link: string) {
     const linkUrl = m[1]
     const parts = m[2].split(';').slice(1)
     const parsed = new URL(linkUrl)
+    const params: Record<string, string | (string[])> = {}
+    for (const [key, value] of parsed.searchParams.entries()) {
+      if (params[key] == null) params[key] = value
+      else if (Array.isArray(params[key])) (params[key] as string[]).push(value)
+      else params[key] = [params[key] as string, value]
+    }
 
-    return parts
-      .reduce(createObjects, { ...Object.fromEntries(parsed.searchParams.entries()), url: linkUrl })
+    return parts.reduce(createObjects, { ...params, url: linkUrl })
   } catch (e: any) {
     return undefined
   }
@@ -40,4 +45,4 @@ export function parseLinkHeader (linkHeader?: string | null) {
   return keyby(linkHeader.split(/,\s*</)
     .map(parseLink)
     .filter(r => isNotBlank(r?.rel)), 'rel') as CanvasLinkHeader
-};
+}

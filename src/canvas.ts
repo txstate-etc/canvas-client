@@ -54,10 +54,10 @@ export class CanvasConnector {
     const res = await this.rateLimit(async () => await this.send('get', url, { ...params, page: 1, per_page: 1000 }))
     const ret = (returnObjKey ? res.data?.[returnObjKey] : res.data)
     let links = parseLinkHeader(res.headers.get('link'))
-    const page = Number(links?.last?.page ?? 0)
-    if (page > 0) {
-      if (page > 1) {
-        const alldata = await Promise.all(Array.from({ length: page - 1 }, (_, i) => i + 2).map(async p => {
+    const lastpage = Number(links?.last?.page ?? 0)
+    if (lastpage > 0) {
+      if (lastpage > 1) {
+        const alldata = await Promise.all(Array.from({ length: lastpage - 1 }, (_, i) => i + 2).map(async p => {
           const res = await this.rateLimit(async () => await this.send('get', url, { ...omit(links!.last!, 'page', 'rel', 'url'), page: p }))
           return (returnObjKey ? res.data?.[returnObjKey] : res.data) || []
         }))
