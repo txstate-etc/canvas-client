@@ -1,4 +1,4 @@
-import { CanvasID } from '.'
+import type { CanvasID } from './index.js'
 
 export enum CanvasAssignmentSubmissionWorkflowState {
   submitted = 'submitted',

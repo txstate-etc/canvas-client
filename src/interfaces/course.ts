@@ -1,6 +1,6 @@
-import { type CanvasEnrollmentShortType, type SpecialTermID, type CanvasID, type SISCourseID, type UserDisplay, type CanvasEnrollmentDisplay } from '.'
-import { type CanvasSection } from './section'
-import { type CanvasEnrollmentTerm } from './term'
+import type { CanvasEnrollmentShortType, SpecialTermID, CanvasID, SISCourseID, UserDisplay, CanvasEnrollmentDisplay } from './index.js'
+import { type CanvasSection } from './section.js'
+import { type CanvasEnrollmentTerm } from './term.js'
 
 export interface ICanvasCourseNew {
   name?: string

@@ -1,4 +1,4 @@
-import { CanvasID } from '.'
+import type { CanvasID } from './index.js'
 
 export enum CanvasAssignmentSubmissionType {
   discussion_topic = 'discussion_topic',
@@ -40,11 +40,11 @@ export interface CanvasAssignmentOverride {
   group_id: CanvasID
   course_section_id: CanvasID
   title: string
-  due_at: Date|string
+  due_at: Date | string
   all_day: boolean
   all_day_date: string
-  unlock_at: Date|string
-  lock_at: Date|string
+  unlock_at: Date | string
+  lock_at: Date | string
 }
 export interface CanvasAssignmentNew {
   name: string

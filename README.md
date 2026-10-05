@@ -17,7 +17,7 @@ We've provided a very simple method for making queries against Canvas' GraphQL A
 graphql queries, but the `graphql` method does accept a generic so that you can provide the expected return type yourself. GraphQL requests also benefit from token splitting and rate limiting. Tokens and rate limits are shared with RESTful requests.
 
 # Testing
-Duplicate `.env.example`, rename it to `.env` and fill in good values for each of the variables. This will allow you to run `npm test` successfully.
+Duplicate `.env.example`, rename it to `.env` and fill in good values for each of the variables. This will allow you to run `npm test` successfully. The tokens should belong to a user (not a service account) who is teaching at least one course and is allowed to create enrollment terms, since many of the tests depend on that.
 
 # 2.0
 The breaking change for 2.0 is node 18+ is required since I got rid of axios in favor of the native fetch api.

@@ -1,4 +1,4 @@
-import { type CanvasID } from '../interfaces'
+import { type CanvasID } from '../interfaces/index.js'
 
 export function throwUnlessValidId (id: CanvasID | string, prefix: string) {
   if (typeof id === 'string' && isNaN(parseInt(id)) && !id.startsWith(prefix)) throw new Error(`ID must either be a number, or a string that begins with ${prefix}`)
@@ -18,7 +18,7 @@ export function stringifyParams (params: Record<string, any>) {
     } else if (typeof val === 'object' && val !== null) {
       for (const [subKey, subVal] of Object.entries(val)) {
         if (Array.isArray(subVal)) {
-          flattened.push(...subVal.map((v) => [`${key}[${subKey}][]`, v]))
+          flattened.push(...subVal.map(v => [`${key}[${subKey}][]`, v]))
         } else if (typeof subVal === 'object' && subVal !== null) {
           for (const [deepKey, deepVal] of Object.entries(subVal)) {
             flattened.push([`${key}[${subKey}][${deepKey}]`, deepVal])

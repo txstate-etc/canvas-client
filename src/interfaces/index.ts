@@ -1,13 +1,13 @@
-export * from './account'
-export * from './assignment'
-export * from './course'
-export * from './enrollment'
-export * from './gradingstandard'
-export * from './section'
-export * from './term'
-export * from './user'
-export * from './externaltool'
-export * from './progress'
+export * from './account.js'
+export * from './assignment.js'
+export * from './course.js'
+export * from './enrollment.js'
+export * from './gradingstandard.js'
+export * from './section.js'
+export * from './term.js'
+export * from './user.js'
+export * from './externaltool.js'
+export * from './progress.js'
 
 export type CanvasID = number
 export type SISUserID = string

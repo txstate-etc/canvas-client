@@ -8,12 +8,25 @@
     "./lib/index.js": "./lib/browser.js",
     "./lib-esm/index.js": "./lib-esm/browser.js"
   },
-  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib-esm/index.d.ts",
+      "browser": {
+        "require": "./lib/browser.js",
+        "import": "./lib-esm/browser.js"
+      },
+      "require": "./lib/index.js",
+      "import": "./lib-esm/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./lib-esm/index.d.ts",
   "scripts": {
-    "prepublishOnly": "npm run clean && npm run build",
-    "clean": "rm -rf lib lib-esm",
-    "build": "tsc && tsc -m es6 --outDir lib-esm --moduleResolution node",
-    "test": "mocha -r ts-node/register test/**/*.ts"
+    "prepublishOnly": "npm run build",
+    "build": "rm -rf lib lib-esm && tsc && tsc -m es2022 --outDir lib-esm --moduleResolution bundler && cp package-esm.json lib-esm/package.json",
+    "lint": "eslint src/**/*.ts test/**/*.ts",
+    "test": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 test/*.ts",
+    "only": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 --test-only test/*.ts"
   },
   "repository": {
     "type": "git",
@@ -27,20 +40,20 @@
   },
   "homepage": "https://github.com/txstate-etc/canvas-client#readme",
   "devDependencies": {
-    "@types/chai": "^4.2.14",
-    "@types/luxon": "^3.2.0",
-    "@types/mocha": "^10.0.1",
-    "chai": "^4.3.7",
-    "dotenv": "^16.0.3",
-    "eslint-config-standard-with-typescript": "^39.0.0",
-    "luxon": "^3.2.1",
-    "mocha": "^10.2.0",
-    "ts-node": "^10.0.0",
-    "typescript": "^4.1.3"
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/chai": "^5.2.3",
+    "@types/luxon": "^3.7.6",
+    "@types/node": "^26.0.0",
+    "chai": "^6.3.0",
+    "eslint-config-love": "^158.0.0",
+    "luxon": "^3.7.2",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.2"
   },
   "dependencies": {
-    "txstate-utils": "^1.8.15"
+    "txstate-utils": "^1.10.4"
   },
+  "sideEffects": false,
   "files": [
     "lib/**/*",
     "lib-esm/**/*"

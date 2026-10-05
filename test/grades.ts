@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
+import { describe, it } from 'node:test'
 import { expect } from 'chai'
-import dotenv from 'dotenv'
-dotenv.config()
-// eslint-disable-next-line import/first
 import { canvasAPI, type CanvasAssignment, CanvasAssignmentGradingType, CanvasAssignmentSubmissionType, type CanvasCourse, CanvasCourseIncludes, CanvasEnrollmentShortType } from '../src'
 
 describe('grades', function () {
@@ -15,7 +12,7 @@ describe('grades', function () {
 
   const assignmentName = 'assignment created during canvas-client automated testing of grade submissions'
 
-  it('should be able to clean up any assignments created during previous test runs', async () => {
+  it('should be able to clean up any assignments created during previous test runs', { timeout: 30000 }, async () => {
     try {
       const assignments = await canvasAPI.getCourseAssignments(course.id)
       if (assignments?.length) {
@@ -28,10 +25,10 @@ describe('grades', function () {
     } catch (e) {
       console.error('Exception encountered during old assignment cleanup', e)
     }
-  }).timeout(5000)
+  })
 
   let assignment: CanvasAssignment
-  it('should be able to publish a new assignment for grades', async () => {
+  it('should be able to publish a new assignment for grades', { timeout: 30000 }, async () => {
     /*
     The use of PUBLISHED_BASEURL below isn't strictly necessary,
     but it's useful to use a valid URL for the assignment, otherwise
@@ -53,7 +50,7 @@ describe('grades', function () {
         new_tab: false
       }
     })
-  }).timeout(5000)
+  })
 
   it('requires the user to have an assignment on their course', async () => {
     const assignments = await canvasAPI.getCourseAssignments(course.id)
@@ -67,11 +64,11 @@ describe('grades', function () {
     expect(assignment).to.have.property('course_id', course.id)
   })
 
-  it('should be able to update grades for the newly created assignment', async () => {
+  it('should be able to update grades for the newly created assignment', { timeout: 60000 }, async () => {
     const students = await canvasAPI.getGradeableStudents(course.id, assignment.id)
     expect(students).to.have.length.greaterThan(0, `No gradeable students found for assignment_id ${assignment.id}`)
 
-    for (const user of students) {
+    await Promise.all(students.map(async user => {
       // between 5% and 95%
       const postedGrade = `${5 + 5 * Math.floor(Math.random() * 19)}%`
 
@@ -95,6 +92,6 @@ describe('grades', function () {
         console.error('Failed to update assignment submission', e)
         expect.fail(`Failed to update assignment submission (user_id:${user.id},course_id:${course.id},assignment_id:${assignment.id},grade:${postedGrade})`)
       }
-    }
-  }).timeout(10000)
+    }))
+  })
 })

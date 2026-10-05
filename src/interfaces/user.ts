@@ -1,4 +1,4 @@
-import type { CanvasID, SISUserID } from '.'
+import type { CanvasID, SISUserID } from './index.js'
 
 interface ICanvasUser {
   id: CanvasID

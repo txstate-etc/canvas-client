@@ -1,4 +1,4 @@
-import { CanvasID } from '.'
+import type { CanvasID } from './index.js'
 
 export interface ExternalTool {
   id: CanvasID
@@ -10,22 +10,22 @@ export interface ExternalTool {
   created_at: Date
   updated_at: Date
   allow_membership_service_access: boolean
-  privacy_level: 'anonymous'|'public'|'name_only'
+  privacy_level: 'anonymous' | 'public' | 'name_only'
   custom_fields: ExternalToolCustomField[]
   workflow_state: string
-  vendor_help_link: string|null
-  account_navigation: ExternalToolNavigation|null
-  course_navigation: ExternalToolNavigation|null
-  course_home_sub_navigation: ExternalToolNavigation|null
-  course_settings_sub_navigation: ExternalToolNavigation|null
-  global_navigation: ExternalToolNavigation|null
-  user_navigation: ExternalToolNavigation|null
+  vendor_help_link: string | null
+  account_navigation: ExternalToolNavigation | null
+  course_navigation: ExternalToolNavigation | null
+  course_home_sub_navigation: ExternalToolNavigation | null
+  course_settings_sub_navigation: ExternalToolNavigation | null
+  global_navigation: ExternalToolNavigation | null
+  user_navigation: ExternalToolNavigation | null
   version: string
 }
 
 export interface ExternalToolNavigation {
-  canvas_icon_class?: string|null
-  icon_url?: string|null
+  canvas_icon_class?: string | null
+  icon_url?: string | null
   text?: string
   url?: string
   label?: string
@@ -51,23 +51,23 @@ export class ExternalToolCustomField {
 export interface ExternalToolPayload {
   url: string
   name: string
-  privacy_level: 'anonymous'|'public'|'name_only'
+  privacy_level: 'anonymous' | 'public' | 'name_only'
   consumer_key: string
   shared_secret: string
   description?: string
   domain?: string
-  icon_url?: string|null
+  icon_url?: string | null
   test?: string
-  custom_fields?: ExternalToolCustomField[]|null
-  course_navigation?: ExternalToolNavigation|null
-  account_navigation?: ExternalToolNavigation|null
-  user_navigation?: ExternalToolNavigation|null
-  course_home_sub_navigation?: ExternalToolNavigation|null
-  editor_button?: ExternalToolNavigation|null
-  homework_submission?: ExternalToolNavigation|null
-  link_selection?: ExternalToolNavigation|null
-  migration_selection?: ExternalToolNavigation|null
-  config_type?: 'by_url'|'by_xml'|null
-  config_xml?: string|null
-  config_url?: string|null
+  custom_fields?: ExternalToolCustomField[] | null
+  course_navigation?: ExternalToolNavigation | null
+  account_navigation?: ExternalToolNavigation | null
+  user_navigation?: ExternalToolNavigation | null
+  course_home_sub_navigation?: ExternalToolNavigation | null
+  editor_button?: ExternalToolNavigation | null
+  homework_submission?: ExternalToolNavigation | null
+  link_selection?: ExternalToolNavigation | null
+  migration_selection?: ExternalToolNavigation | null
+  config_type?: 'by_url' | 'by_xml' | null
+  config_xml?: string | null
+  config_url?: string | null
 }

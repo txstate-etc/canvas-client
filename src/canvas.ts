@@ -1,9 +1,9 @@
 import { pLimit, omit, isNotEmpty } from 'txstate-utils'
-import { type CanvasAccount, CanvasCourse, type CanvasSection, type CanvasEnrollment, type CanvasEnrollmentPayload, type CanvasCoursePayload, CanvasSectionPayload, type CanvasGradingStandard, type CanvasID, type SpecialUserID, type SpecialSectionID, type SISSectionID, type SISUserID, type SpecialCourseID, type SISTermID, type SpecialTermID, CanvasEnrollmentTerm, type CanvasCourseParams, type CanvasEnrollmentParams, type CanvasCourseSettings, type CanvasCourseSettingsUpdate, type CanvasUserUpdatePayload, type CanvasCourseListFilters, type ICanvasEnrollmentTerm, type CanvasEnrollmentTermPayload, type CanvasEnrollmentTermParams, CanvasCourseIncludes, type CanvasCourseUsersParams, CanvasUser, CanvasAssignment, type CanvasAssignmentNew, type CanvasAssignmentSubmission, type CanvasAssignmentSubmissionNew, type UserDisplay } from './interfaces'
-import { stringifyParams, throwUnlessValidId, throwUnlessValidUserId } from './utils/utils'
-import { type ExternalTool, type ExternalToolPayload } from './interfaces/externaltool'
-import { GraphQLError } from './utils/errors'
-import { parseLinkHeader } from './utils/parselink'
+import { type CanvasAccount, CanvasCourse, type CanvasSection, type CanvasEnrollment, type CanvasEnrollmentPayload, type CanvasCoursePayload, CanvasSectionPayload, type CanvasGradingStandard, type CanvasID, type SpecialUserID, type SpecialSectionID, type SISSectionID, type SISUserID, type SpecialCourseID, type SISTermID, type SpecialTermID, CanvasEnrollmentTerm, type CanvasCourseParams, type CanvasEnrollmentParams, type CanvasCourseSettings, type CanvasCourseSettingsUpdate, type CanvasUserUpdatePayload, type CanvasCourseListFilters, type ICanvasEnrollmentTerm, type CanvasEnrollmentTermPayload, type CanvasEnrollmentTermParams, CanvasCourseIncludes, type CanvasCourseUsersParams, CanvasUser, CanvasAssignment, type CanvasAssignmentNew, type CanvasAssignmentSubmission, type CanvasAssignmentSubmissionNew, type UserDisplay } from './interfaces/index.js'
+import { stringifyParams, throwUnlessValidId, throwUnlessValidUserId } from './utils/utils.js'
+import { type ExternalTool, type ExternalToolPayload } from './interfaces/externaltool.js'
+import { GraphQLError } from './utils/errors.js'
+import { parseLinkHeader } from './utils/parselink.js'
 export class CanvasConnector {
   private rateLimit = pLimit(10)
   private restUrl: URL | undefined
@@ -160,7 +160,7 @@ export class CanvasAPI {
   }
 
   public async getRootAccount (): Promise<CanvasAccount> {
-    if (!this.root) this.root = (await this.getRootAccounts())[0]
+    this.root ??= (await this.getRootAccounts())[0]
     return this.root
   }
 
@@ -184,7 +184,7 @@ export class CanvasAPI {
   }
 
   public async getCourses (accountId?: CanvasID, params?: CanvasCourseListFilters): Promise<CanvasCourse[]> {
-    if (!accountId) accountId = (await this.getRootAccount()).id
+    accountId ??= (await this.getRootAccount()).id
     if (!accountId) return []
     return (await this.getall(`/accounts/${accountId}/courses`, params)).map(c => new CanvasCourse(c))
   }
@@ -258,7 +258,7 @@ export class CanvasAPI {
 
   // GRADING STANDARDS
   public async getGradingStandards (accountId?: CanvasID): Promise<CanvasGradingStandard[]> {
-    if (!accountId) accountId = (await this.getRootAccount()).id
+    accountId ??= (await this.getRootAccount()).id
     if (!accountId) return []
     return await this.getall(`/accounts/${accountId}/grading_standards`)
   }
@@ -371,7 +371,7 @@ export class CanvasAPI {
   }
 
   public async deactivateAllEnrollmentsFromSectionsBySis (sisIds: SISSectionID[]) {
-    const enrollments = await Promise.all(sisIds.map(async (sisId) => {
+    const enrollments = await Promise.all(sisIds.map(async sisId => {
       return await this.getSectionEnrollmentsBySIS(sisId)
     }))
 
@@ -384,7 +384,7 @@ export class CanvasAPI {
 
   // TERM
   public async getEnrollmentTerms (accountId?: CanvasID, params?: CanvasEnrollmentTermParams): Promise<CanvasEnrollmentTerm[]> {
-    if (!accountId) accountId = (await this.getRootAccount()).id
+    accountId ??= (await this.getRootAccount()).id
     if (!accountId) return []
     return (await this.getall(`/accounts/${accountId}/terms`, params, 'enrollment_terms')).map((t: ICanvasEnrollmentTerm) => new CanvasEnrollmentTerm(t))
   }
@@ -407,7 +407,7 @@ export class CanvasAPI {
   }
 
   public async createEnrollmentTerm (accountId: CanvasID | undefined, enrollmentTermPayload: CanvasEnrollmentTermPayload) {
-    if (!accountId) accountId = (await this.getRootAccount()).id
+    accountId ??= (await this.getRootAccount()).id
     if (!accountId) throw new Error('Tried to create an enrollment term with no account ID and root account could not be determined.')
     return new CanvasEnrollmentTerm(await this.post(`/accounts/${accountId}/terms`, enrollmentTermPayload))
   }
@@ -425,13 +425,13 @@ export class CanvasAPI {
 
   // External Tools
   public async getExternalTools (accountId?: CanvasID): Promise<ExternalTool[]> {
-    if (!accountId) accountId = (await this.getRootAccount()).id
+    accountId ??= (await this.getRootAccount()).id
     if (!accountId) return []
     return await this.getall(`/accounts/${accountId}/external_tools`)
   }
 
   public async createExternalTool (accountId: CanvasID | undefined, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
-    if (!accountId) accountId = (await this.getRootAccount()).id
+    accountId ??= (await this.getRootAccount()).id
     if (!accountId) throw new Error('Tried to create an external tool with no account ID and root account could not be determined.')
     return await this.post(`/accounts/${accountId}/external_tools`, externalToolPayload)
   }

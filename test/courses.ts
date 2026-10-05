@@ -1,9 +1,7 @@
+import { describe, it } from 'node:test'
 import { expect } from 'chai'
 import { type CanvasCourse, CanvasCourseState, CanvasEnrollmentShortType } from '../src/interfaces'
 import { DateTime } from 'luxon'
-import dotenv from 'dotenv'
-dotenv.config()
-// eslint-disable-next-line import/first
 import { canvasAPI } from '../src'
 
 describe('courses', function () {
@@ -31,7 +29,7 @@ describe('courses', function () {
     const users = await canvasAPI.getCourseUsers(selfcourse.id)
     expect(users).to.have.length.greaterThan(0)
   })
-  it('should retrieve more than 100 courses in the root account', async () => {
+  it('should retrieve more than 100 courses in the root account', { timeout: 180000 }, async () => {
     const now = DateTime.local()
     const lastspring = DateTime.fromObject({ year: now.month < 3 ? now.year - 1 : now.year, month: 3, day: 10, hour: 12, minute: 0, second: 0 })
     const term = await canvasAPI.getEnrollmentTermCurrent(lastspring.toJSDate())
@@ -41,5 +39,5 @@ describe('courses', function () {
       enrollment_term_id: term!.id
     })
     expect(courses).to.have.length.greaterThan(100)
-  }).timeout(60000)
+  })
 })

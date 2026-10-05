@@ -1,4 +1,4 @@
-import { SISSectionID, CanvasID } from '.'
+import type { SISSectionID, CanvasID } from './index.js'
 
 export interface ICanvasSectionNew {
   name: string

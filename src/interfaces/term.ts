@@ -1,4 +1,4 @@
-import { CanvasEnrollmentType, CanvasID } from '.'
+import type { CanvasEnrollmentType, CanvasID } from './index.js'
 
 export enum CanvasEnrollmentTermsState {
   Active = 'active',
@@ -25,9 +25,9 @@ export interface CanvasEnrollmentTermPayload {
 export interface ICanvasEnrollmentTerm {
   id: CanvasID
   name: string
-  created_at: string|Date
-  start_at: string|Date
-  end_at: string|Date
+  created_at: string | Date
+  start_at: string | Date
+  end_at: string | Date
   sis_term_id?: string
   overrides?: { [keys in CanvasEnrollmentType]: CanvasEnrollmentTermOverride }
   workflow_state: CanvasEnrollmentTermsState
@@ -50,6 +50,6 @@ export class CanvasEnrollmentTerm {
 }
 
 export interface CanvasEnrollmentTermParams {
-  workflow_state?: ('active'|'deleted'|'all')[]
+  workflow_state?: ('active' | 'deleted' | 'all')[]
   include?: 'overrides'[]
 }
