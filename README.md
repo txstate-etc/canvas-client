@@ -13,11 +13,37 @@ Canvas rate-limits incoming requests to about 20 simultaneous requests per accou
   * Note that if you run multiple instances, you STILL want to reduce the max simultaneous requests per token, to avoid getting errors when you have a backlog of requests overwhelming the capacity of your tokens.
 
 ## GraphQL
-We've provided a very simple method for making queries against Canvas' GraphQL API. It only takes care of the fundamentals of GraphQL. We do not provide types for
-graphql queries, but the `graphql` method does accept a generic so that you can provide the expected return type yourself. GraphQL requests also benefit from token splitting and rate limiting. Tokens and rate limits are shared with RESTful requests.
+Canvas has a GraphQL API that is often far more efficient than REST, since one request can pull a course, its sections, users, and enrollments. GraphQL requests get the same token splitting and rate limiting as RESTful requests, sharing the same tokens and limits.
+
+The simplest way in is the `graphql` method. It accepts a generic for the response type, but you'll have to write that type yourself and keep it in sync with your query:
+```typescript
+const { course } = await canvasAPI.graphql<{ course: { name: string } }>(`query getCourse ($courseId: ID!) {
+  course(id: $courseId) { name }
+}`, { courseId: '12345' })
+```
+
+Writing those interfaces by hand gets old fast, so there's also a fully typed client generated with [genql](https://genql.dev). You select fields with an object instead of a query string, and the response type follows from whatever you selected:
+```typescript
+import { createCanvasGraphQLClient } from 'canvas-client/graphql'
+
+const client = createCanvasGraphQLClient(canvasAPI)
+const { course } = await client.query({
+  course: {
+    __args: { id: '12345' },
+    name: true,
+    usersConnection: { nodes: { _id: true, name: true } }
+  }
+})
+// course?.usersConnection?.nodes is ({ _id: string, name: string | null } | null)[] | null
+// Canvas marks most things nullable, so expect a lot of optional chaining
+```
+It lives in its own `canvas-client/graphql` export because the generated schema is large, and I didn't want everyone else paying for it in their bundles.
+
+### Note about schema drift
+Every hosted Canvas instance runs the same release, so the types fit yours too, but they're a snapshot from the day we generated them. Instructure adds to the schema with nearly every release, so a brand new field might not be in the types yet. If you need one before we regenerate, use the `graphql` method for that query.
 
 # Testing
-Duplicate `.env.example`, rename it to `.env` and fill in good values for each of the variables. This will allow you to run `npm test` successfully. The tokens should belong to a user (not a service account) who is teaching at least one course and is allowed to create enrollment terms, since many of the tests depend on that.
+Duplicate `.env.example`, rename it to `.env` and fill in good values for each of the variables. This will allow you to run `npm test` successfully, and `npm run genclient` to regenerate `src/typed-client` from your Canvas instance's schema. Never hand-edit `src/typed-client`, since it's overwritten on every run. The tokens should belong to a user (not a service account) who is teaching at least one course and is allowed to create enrollment terms, since many of the tests depend on that.
 
 # 2.0
 The breaking change for 2.0 is node 18+ is required since I got rid of axios in favor of the native fetch api.

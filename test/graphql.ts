@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import { expect } from 'chai'
 import { canvasAPI } from '../src'
+import { createCanvasGraphQLClient } from '../src/graphql.js'
 
 describe('graphql', () => {
   it('should be able to get all the enrollments in a site', { timeout: 30000 }, async () => {
@@ -34,6 +35,20 @@ describe('graphql', () => {
     }
     `, { courseId })
     expect(course.usersConnection.nodes.length).to.be.greaterThan(0)
+  })
+
+  it('should be able to query with the typed client', { timeout: 30000 }, async () => {
+    const client = createCanvasGraphQLClient(canvasAPI)
+    const { course } = await client.query({
+      course: {
+        __args: { id: '1042050' },
+        _id: true,
+        name: true,
+        usersConnection: { nodes: { _id: true, name: true } }
+      }
+    })
+    expect(course?._id).to.equal('1042050')
+    expect(course?.usersConnection?.nodes?.length).to.be.greaterThan(0)
   })
 
   // https://github.com/instructure/canvas-lms/issues/2504

@@ -2,6 +2,7 @@ import love from 'eslint-config-love'
 import stylistic from '@stylistic/eslint-plugin'
 
 export default [
+  { ignores: ['src/typed-client/**'] },
   // FORMATTING RULES
   stylistic.configs.recommended,
   {
