@@ -1,4 +1,4 @@
-import type { CanvasID, SpecialUserID, SpecialSectionID, SISCourseID } from './index.js'
+import type { CanvasID, CanvasIDInput, SpecialUserID, SpecialSectionID, SISCourseID } from './index.js'
 
 export enum CanvasEnrollmentState {
   Active = 'active',
@@ -21,17 +21,17 @@ export enum CanvasEnrollmentShortType {
 }
 
 export interface ICanvasEnrollmentNew {
-  user_id: CanvasID | SpecialUserID
+  user_id: CanvasIDInput | SpecialUserID
   type: CanvasEnrollmentType
   role?: string
-  role_id?: number
+  role_id?: CanvasIDInput
   enrollment_state?: CanvasEnrollmentState
-  course_section_id?: CanvasID | SpecialSectionID
+  course_section_id?: CanvasIDInput | SpecialSectionID
   limit_privileges_to_course_section?: boolean
   notify?: boolean
   self_enrollment_code?: string
   self_enrolled?: boolean
-  associated_user_id?: CanvasID | SpecialUserID
+  associated_user_id?: CanvasIDInput | SpecialUserID
 }
 export interface CanvasEnrollmentNew extends ICanvasEnrollmentNew {}
 export class CanvasEnrollmentNew {
@@ -54,6 +54,7 @@ export interface CanvasEnrollment extends CanvasEnrollmentNew {
   id: CanvasID
   user_id: CanvasID
   associated_user_id?: CanvasID
+  role_id?: CanvasID
   course_id: CanvasID
   sis_course_id: SISCourseID | null
   course_integration_id: string | null
@@ -79,5 +80,5 @@ export class CanvasEnrollmentPayload {
 
 export interface CanvasEnrollmentParams {
   roles?: CanvasEnrollmentType[]
-  user_id?: CanvasID
+  user_id?: CanvasIDInput
 }

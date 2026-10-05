@@ -6,7 +6,7 @@ describe('terms', function () {
   it('should retrieve enrollment terms from the root account', async () => {
     const terms = await canvasAPI.getEnrollmentTerms()
     for (const term of terms) {
-      expect(term.id).to.be.greaterThan(0)
+      expect(term.id).to.match(/^[1-9][0-9]*$/)
       expect(term.created_at).to.be.a('date')
     }
   })
@@ -18,7 +18,7 @@ describe('terms', function () {
         end_at: new Date()
       }
     })
-    expect(term?.id).to.be.greaterThan(0)
+    expect(term?.id).to.match(/^[1-9][0-9]*$/)
     expect(term?.start_at).to.be.a('date')
     expect(term?.end_at).to.be.a('date')
   })

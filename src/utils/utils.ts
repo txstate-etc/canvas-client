@@ -1,10 +1,10 @@
-import { type CanvasID } from '../interfaces/index.js'
+import { type CanvasIDInput } from '../interfaces/index.js'
 
-export function throwUnlessValidId (id: CanvasID | string, prefix: string) {
-  if (typeof id === 'string' && isNaN(parseInt(id)) && !id.startsWith(prefix)) throw new Error(`ID must either be a number, or a string that begins with ${prefix}`)
+export function throwUnlessValidId (id: CanvasIDInput, prefix: string) {
+  if (typeof id === 'string' && isNaN(parseInt(id)) && !id.startsWith(prefix)) throw new Error(`ID must either be numeric, or a string that begins with ${prefix}`)
 }
 
-export function throwUnlessValidUserId (id: CanvasID | string) {
+export function throwUnlessValidUserId (id: CanvasIDInput) {
   if (id === 'self') return
   throwUnlessValidId(id, 'sis_user_id:')
 }

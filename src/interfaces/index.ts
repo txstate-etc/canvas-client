@@ -9,7 +9,11 @@ export * from './user.js'
 export * from './externaltool.js'
 export * from './progress.js'
 
-export type CanvasID = number
+// Canvas ids are sent and received as strings because ids created through a trust
+// relationship with another Canvas instance can exceed Number.MAX_SAFE_INTEGER.
+export type CanvasID = string
+// Anywhere you hand an id to Canvas, a number is also accepted for convenience.
+export type CanvasIDInput = CanvasID | number
 export type SISUserID = string
 export type SISCourseID = string
 export type SISSectionID = string

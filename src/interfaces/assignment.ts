@@ -1,4 +1,4 @@
-import type { CanvasID } from './index.js'
+import type { CanvasID, CanvasIDInput } from './index.js'
 
 export enum CanvasAssignmentSubmissionType {
   discussion_topic = 'discussion_topic',
@@ -59,7 +59,7 @@ export interface CanvasAssignmentNew {
   peer_reviews?: boolean
   automatic_peer_reviews?: boolean
   notify_of_update?: boolean
-  group_category_id?: CanvasID
+  group_category_id?: CanvasIDInput
   grade_group_students_individually?: boolean
   external_tool_tag_attributes?: { [keys: string]: any }
   points_possible?: number
@@ -68,22 +68,22 @@ export interface CanvasAssignmentNew {
   lock_at?: Date
   unlock_at?: Date
   description?: string
-  assignment_group_id?: CanvasID
+  assignment_group_id?: CanvasIDInput
   assignment_overrides?: CanvasAssignmentOverride[]
   only_visible_to_overrides?: boolean
   published?: boolean
-  grading_standard_id?: CanvasID
+  grading_standard_id?: CanvasIDInput
   omit_from_final_grade?: boolean
   quiz_lti?: boolean
   moderated_grading?: boolean
   grader_count?: number
-  final_grader_id?: CanvasID
+  final_grader_id?: CanvasIDInput
   grader_comments_visible_to_graders?: boolean
   graders_anonymous_to_graders?: boolean
   graders_names_visible_to_final_grader?: boolean
   anonymous_grading?: boolean
   allowed_attempts?: number
-  annotatable_attachment_id?: CanvasID
+  annotatable_attachment_id?: CanvasIDInput
 }
 interface ICanvasAssignment extends CanvasAssignmentNew {
   submission_types: CanvasAssignmentSubmissionType[]
@@ -92,6 +92,11 @@ interface ICanvasAssignment extends CanvasAssignmentNew {
   updated_at: Date
   has_overrides: boolean
   course_id: CanvasID
+  group_category_id?: CanvasID
+  assignment_group_id?: CanvasID
+  grading_standard_id?: CanvasID
+  final_grader_id?: CanvasID
+  annotatable_attachment_id?: CanvasID
   html_url: string
   submissions_download_url: string
   due_date_required: boolean
@@ -122,9 +127,9 @@ export class CanvasAssignment {
   }
 }
 export interface CanvasAssignmentSubmissionNew {
-  course_id: CanvasID
-  assignment_id: CanvasID
-  user_id: CanvasID
+  course_id: CanvasIDInput
+  assignment_id: CanvasIDInput
+  user_id: CanvasIDInput
   posted_grade?: string
   excused?: boolean
   late_policy_status?: CanvasLatePolicyType
@@ -132,6 +137,9 @@ export interface CanvasAssignmentSubmissionNew {
 }
 export interface CanvasAssignmentSubmission extends CanvasAssignmentSubmissionNew {
   id: CanvasID
+  course_id: CanvasID
+  assignment_id: CanvasID
+  user_id: CanvasID
   grade_matches_current_submission: boolean
   workflow_state: CanvasAssignmentSubmissionWorkflowState
   posted_at: Date

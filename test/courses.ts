@@ -33,7 +33,7 @@ describe('courses', function () {
     const now = DateTime.local()
     const lastspring = DateTime.fromObject({ year: now.month < 3 ? now.year - 1 : now.year, month: 3, day: 10, hour: 12, minute: 0, second: 0 })
     const term = await canvasAPI.getEnrollmentTermCurrent(lastspring.toJSDate())
-    expect(term?.id).to.be.greaterThan(0)
+    expect(term?.id).to.match(/^[1-9][0-9]*$/)
     const courses = await canvasAPI.getCourses(undefined, {
       enrollment_type: [CanvasEnrollmentShortType.student],
       enrollment_term_id: term!.id

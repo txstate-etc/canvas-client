@@ -31,7 +31,7 @@ export interface ICanvasEnrollmentTerm {
   sis_term_id?: string
   overrides?: { [keys in CanvasEnrollmentType]: CanvasEnrollmentTermOverride }
   workflow_state: CanvasEnrollmentTermsState
-  grading_period_group_id: number
+  grading_period_group_id: CanvasID
 }
 
 export interface CanvasEnrollmentTerm extends ICanvasEnrollmentTerm {

@@ -26,7 +26,7 @@ export class CanvasUser {
 }
 
 export interface UserDisplay {
-  id: number
+  id: CanvasID
   short_name: string
   avatar_image_url: string
   html_url: string

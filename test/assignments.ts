@@ -15,7 +15,7 @@ describe('assignments', function () {
     newAssignment = await canvasAPI.createCourseAssignment(selfcourse.id, {
       name: 'assignment created during canvas-client automated testing'
     })
-    expect(newAssignment?.id).to.be.greaterThan(0)
+    expect(newAssignment?.id).to.match(/^[1-9][0-9]*$/)
   })
 
   it('should be able to retrieve the newly created assignment', async () => {

@@ -9,7 +9,7 @@ describe('enrollments', function () {
     const enrollments = await canvasAPI.getCourseEnrollments(courseId)
     expect(enrollments).to.have.length.greaterThan(0)
     for (const enrollment of enrollments) {
-      expect(enrollment.id).to.be.greaterThan(0)
+      expect(enrollment.id).to.match(/^[1-9][0-9]*$/)
       expect(enrollment.course_id).to.equal(courseId)
     }
   })
@@ -17,8 +17,8 @@ describe('enrollments', function () {
     const enrollments = await canvasAPI.getSectionEnrollmentsBySIS('202130.30375')
     expect(enrollments).to.have.length.greaterThan(100)
     for (const enrollment of enrollments) {
-      expect(enrollment.id).to.be.greaterThan(0)
-      expect(enrollment.course_id).to.be.greaterThan(0)
+      expect(enrollment.id).to.match(/^[1-9][0-9]*$/)
+      expect(enrollment.course_id).to.match(/^[1-9][0-9]*$/)
     }
   })
   it('should retrieve enrollments from a user', async () => {

@@ -12,7 +12,7 @@ export interface CanvasAccount {
   default_time_zone: string
   sis_account_id: string
   integration_id: string
-  sis_import_id: number
+  sis_import_id: CanvasID
   lti_guid: string
   workflow_state: 'active' | 'deleted'
 }
