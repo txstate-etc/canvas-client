@@ -2,11 +2,6 @@
 
 None of these are breaking, so they can land in any 3.x release.
 
-## Bugs
-
-- `getall`: the fallback that follows `next` links (used when Canvas doesn't send a `last` link) does `ret.push(...res.data)` and ignores `returnObjKey`. If an endpoint that needs a key (like `/accounts/:id/terms` with `enrollment_terms`) paginates via `next`, it pushes the wrapper object instead of the array. `ret` can also be `undefined` there if the key is missing from the first page.
-- `getall` sends `per_page: 1000`, but Canvas caps most endpoints at 100. It works, but it's misleading, so set it to 100.
-
 ## Nice-to-haves
 
 - Request timeout via `AbortSignal.timeout` in `send`, so a hung Canvas connection doesn't hold a rate-limit slot forever. Make it configurable in `CanvasAPIOptions`.
@@ -18,7 +13,9 @@ None of these are breaking, so they can land in any 3.x release.
 
 ## genql `__args` quirk
 
-genql 6.3.4 decides whether `__args` is optional by regex-matching the rendered TypeScript for a colon not preceded by `?` (`render/requestTypes/objectType.js`). When an argument's description contains a colon, like Canvas's "use `filter: {userIds}` instead", `__args` becomes required even though every argument is optional. In the current schema this affects 5 of 301 fields with args: `Course.usersConnection`, `Course.usersConnectionCount`, `Query.assignment`, `SubmissionStatistics.missingSubmissionsCount`, and `User.courseWorkSubmissionsConnection`. Passing `__args: {}` works around it. Options:
+genql 6.3.4 decides whether `__args` is optional by regex-matching the rendered TypeScript for a colon not preceded by `?` (`render/requestTypes/objectType.js`). When an argument's description contains a colon, like Canvas's "use `filter: {userIds}` instead", `__args` becomes required even though every argument is optional. In the current schema this affects 5 of 301 fields with args: `Course.usersConnection`, `Course.usersConnectionCount`, `Query.assignment`, `SubmissionStatistics.missingSubmissionsCount`, and `User.courseWorkSubmissionsConnection`. Passing `__args: {}` works around it.
 
-- Report it upstream to genql.
-- Post-process in `genclient.sh` (fragile), or strip descriptions before generating (loses the doc comments, which are useful).
+The fix is merged upstream in https://github.com/remorses/genql/pull/202 but hasn't been released yet. Once a version after 6.3.4 is out:
+
+- Rerun `npm run genclient`. It calls `npx @genql/cli` without a version, so check that it actually picked up the new release.
+- Remove the `__args: {}` workarounds from the README examples and `test/graphql.ts`, and make sure everything still type-checks.

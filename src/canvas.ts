@@ -62,22 +62,24 @@ export class CanvasConnector {
   }
 
   async getall (url: string, params: any = {}, returnObjKey?: string): Promise<any[]> {
-    const res = await this.rateLimit(async () => await this.send('get', url, { ...params, page: 1, per_page: 1000 }))
-    const ret = (returnObjKey ? res.data?.[returnObjKey] : res.data)
+    const pageData = (res: { data?: any }): any[] => (returnObjKey ? res.data?.[returnObjKey] : res.data) ?? []
+    // Canvas caps most endpoints at 100 per page
+    const res = await this.rateLimit(async () => await this.send('get', url, { ...params, page: 1, per_page: 100 }))
+    const ret = pageData(res)
     let links = parseLinkHeader(res.headers.get('link'))
     const lastpage = Number(links?.last?.page ?? 0)
     if (lastpage > 0) {
       if (lastpage > 1) {
         const alldata = await Promise.all(Array.from({ length: lastpage - 1 }, (_, i) => i + 2).map(async p => {
           const res = await this.rateLimit(async () => await this.send('get', url, { ...omit(links!.last!, 'page', 'rel', 'url'), page: p }))
-          return (returnObjKey ? res.data?.[returnObjKey] : res.data) || []
+          return pageData(res)
         }))
         ret.push(...alldata.flat())
       }
-    } else if (links?.next?.url) {
-      while (links!.next?.url) {
+    } else {
+      while (links?.next?.url) {
         const res = await this.rateLimit(async () => await this.send('get', links!.next.url))
-        ret.push(...res.data)
+        ret.push(...pageData(res))
         links = parseLinkHeader(res.headers.get('link'))
       }
     }
