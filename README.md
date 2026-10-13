@@ -39,6 +39,34 @@ const { course } = await client.query({
 ```
 It lives in its own `canvas-client/graphql` export because the generated schema is large, and I didn't want everyone else paying for it in their bundles.
 
+### Pagination
+That example has a problem you won't notice until it bites you. Canvas paginates every connection, and when you don't pass `first`, it quietly hands back the first 20 items with no error. Passing `first` only gets you to 100, which is the most Canvas will return in one page. So a course with 240 students gives you 20 of them, and nothing tells you so.
+
+Following `pageInfo.endCursor` yourself is tedious, and it gets genuinely painful when connections are nested, like submissions inside assignments. So the client has a `queryAll` method. It takes the same request as `query`, returns the same type, and every connection in the response comes back complete:
+```typescript
+const { course } = await client.queryAll({
+  course: {
+    __args: { id: '12345' },
+    usersConnection: { __args: {}, nodes: { _id: true, name: true } },
+    assignmentsConnection: {
+      nodes: { _id: true, submissionsConnection: { nodes: { _id: true, score: true } } }
+    }
+  }
+})
+// all 240 users, every assignment, and every submission for each assignment
+```
+Pages are 100 items unless you pass `first` yourself, in which case your value is the page size. It's not a limit, so `first: 10` still gets you everything, just 10 at a time. To continue a connection, `queryAll` comes back to its parent with `node(id: ...)`, so the parent has to implement Canvas's Node interface. Almost everything does, and if yours doesn't you'll get an error saying so.
+
+Every extra page is its own request. A course with 50 assignments that each need a second page of submissions means 50 more requests. They're rate-limited like everything else, so this won't hurt Canvas, but it can take a while.
+
+When you need to page through one connection by hand (say its parent isn't a Node), there's also `paginate`. You build the request for a given cursor and point at the connection, and it returns all the nodes:
+```typescript
+const users = await client.paginate(
+  after => ({ course: { __args: { id: '12345' }, usersConnection: { __args: { first: 100, after }, nodes: { _id: true }, pageInfo: { hasNextPage: true, endCursor: true } } } }),
+  res => res.course?.usersConnection
+)
+```
+
 ### Note about schema drift
 Every hosted Canvas instance runs the same release, so the types fit yours too, but they're a snapshot from the day we generated them. Instructure adds to the schema with nearly every release, so a brand new field might not be in the types yet. If you need one before we regenerate, use the `graphql` method for that query.
 

@@ -1,6 +1,6 @@
 {
   "name": "canvas-client",
-  "version": "2.0.8",
+  "version": "3.0.0",
   "description": "Typescript library to make accessing the Canvas API more convenient.",
   "main": "lib/index.js",
   "module": "lib-esm/index.js",
@@ -18,15 +18,24 @@
       "require": "./lib/index.js",
       "import": "./lib-esm/index.js"
     },
+    "./graphql": {
+      "types": "./lib-esm/graphql.d.ts",
+      "require": "./lib/graphql.js",
+      "import": "./lib-esm/graphql.js"
+    },
     "./package.json": "./package.json"
   },
   "types": "./lib-esm/index.d.ts",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "prepublishOnly": "npm run build",
     "build": "rm -rf lib lib-esm && tsc && tsc -m es2022 --outDir lib-esm --moduleResolution bundler && cp package-esm.json lib-esm/package.json",
-    "lint": "eslint src/**/*.ts test/**/*.ts",
+    "lint": "eslint --no-warn-ignored src/**/*.ts test/**/*.ts",
     "test": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 test/*.ts",
-    "only": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 --test-only test/*.ts"
+    "only": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 --test-only test/*.ts",
+    "genclient": "./genclient.sh"
   },
   "repository": {
     "type": "git",
