@@ -31,7 +31,7 @@ const { course } = await client.query({
   course: {
     __args: { id: '12345' },
     name: true,
-    usersConnection: { nodes: { _id: true, name: true } }
+    usersConnection: { __args: {}, nodes: { _id: true, name: true } }
   }
 })
 // course?.usersConnection?.nodes is ({ _id: string, name: string | null } | null)[] | null
@@ -52,3 +52,18 @@ The breaking change for 2.0 is node 18+ is required since I got rid of axios in 
 Canvas ids are now strings instead of numbers. When you have a trust relationship with another Canvas instance, users from that instance show up with ids like `10690000000012345`, which is bigger than `Number.MAX_SAFE_INTEGER`. JSON.parse silently rounds those, so you'd end up talking to Canvas about a user who doesn't exist. Canvas will send ids as strings if you ask nicely with an `Accept: application/json+canvas-string-ids` header, so now every request does that.
 
 Anywhere you pass an id into the client, a number is still accepted (the `CanvasIDInput` type), so most calling code keeps compiling. What will break is anything that treats an id from a response as a number: arithmetic, sorting numerically, comparing with `===` against a number, or a `Map<number, ...>` keyed by id.
+
+Dates in responses are now always `Date` objects. Before, the types promised `Date` everywhere but only a few methods actually converted, so you might have been calling `new Date()` on something that was already a string. A date Canvas leaves empty is now `undefined` instead of `null`, which matters most for enrollment terms: the Default Term used to come back with a `start_at` of January 1, 1970, and now it comes back `undefined`. Dates you pass in query params (like `starts_before`) are now sent as ISO strings, before they were silently dropped.
+
+When Canvas responds with an error, you now get a `CanvasAPIError` with `status`, `method`, `url`, and `body` (parsed JSON when Canvas sent JSON), so you can tell a 404 from a 401 without parsing the message:
+```typescript
+try {
+  await canvasAPI.getUser('sis_user_id:A00123456')
+} catch (e) {
+  if (e instanceof CanvasAPIError && e.status === 404) return undefined // no such user
+  throw e
+}
+```
+Related to that, the `sectionExists` family used to return false for any failure, so a bad token looked exactly like a missing section. Now only a 404 returns false and anything else throws.
+
+Node 22 or newer is required.

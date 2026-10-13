@@ -46,5 +46,7 @@ export interface CanvasProgress extends ICanvasProgress {}
 export class CanvasProgress {
   constructor (apiresponse: ICanvasProgress) {
     Object.assign(this, apiresponse)
+    this.created_at = new Date(apiresponse.created_at)
+    this.updated_at = new Date(apiresponse.updated_at)
   }
 }

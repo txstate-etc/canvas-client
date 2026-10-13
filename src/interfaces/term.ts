@@ -1,4 +1,5 @@
 import type { CanvasEnrollmentType, CanvasID } from './index.js'
+import { toDate } from '../utils/utils.js'
 
 export enum CanvasEnrollmentTermsState {
   Active = 'active',
@@ -26,8 +27,8 @@ export interface ICanvasEnrollmentTerm {
   id: CanvasID
   name: string
   created_at: string | Date
-  start_at: string | Date
-  end_at: string | Date
+  start_at?: string | Date | null
+  end_at?: string | Date | null
   sis_term_id?: string
   overrides?: { [keys in CanvasEnrollmentType]: CanvasEnrollmentTermOverride }
   workflow_state: CanvasEnrollmentTermsState
@@ -36,16 +37,17 @@ export interface ICanvasEnrollmentTerm {
 
 export interface CanvasEnrollmentTerm extends ICanvasEnrollmentTerm {
   created_at: Date
-  start_at: Date
-  end_at: Date
+  // undefined for open-ended terms, like the Default Term
+  start_at: Date | undefined
+  end_at: Date | undefined
 }
 
 export class CanvasEnrollmentTerm {
   constructor (enrollmentTerm: ICanvasEnrollmentTerm) {
     Object.assign(this, enrollmentTerm)
     this.created_at = new Date(enrollmentTerm.created_at)
-    this.start_at = new Date(enrollmentTerm.start_at)
-    this.end_at = new Date(enrollmentTerm.end_at)
+    this.start_at = toDate(enrollmentTerm.start_at)
+    this.end_at = toDate(enrollmentTerm.end_at)
   }
 }
 

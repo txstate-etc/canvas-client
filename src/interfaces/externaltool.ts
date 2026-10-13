@@ -1,6 +1,6 @@
 import type { CanvasID } from './index.js'
 
-export interface ExternalTool {
+interface IExternalTool {
   id: CanvasID
   domain: string
   url: string
@@ -21,6 +21,14 @@ export interface ExternalTool {
   global_navigation: ExternalToolNavigation | null
   user_navigation: ExternalToolNavigation | null
   version: string
+}
+export interface ExternalTool extends IExternalTool {}
+export class ExternalTool {
+  constructor (apiresponse: IExternalTool) {
+    Object.assign(this, apiresponse)
+    this.created_at = new Date(apiresponse.created_at)
+    this.updated_at = new Date(apiresponse.updated_at)
+  }
 }
 
 export interface ExternalToolNavigation {

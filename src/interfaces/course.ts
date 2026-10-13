@@ -1,6 +1,7 @@
 import type { CanvasEnrollmentShortType, SpecialTermID, CanvasID, CanvasIDInput, SISCourseID, UserDisplay, CanvasEnrollmentDisplay } from './index.js'
-import { type CanvasSection } from './section.js'
-import { type CanvasEnrollmentTerm } from './term.js'
+import { CanvasSection } from './section.js'
+import { CanvasEnrollmentTerm } from './term.js'
+import { toDate } from '../utils/utils.js'
 
 export interface ICanvasCourseNew {
   name?: string
@@ -103,7 +104,9 @@ export class CanvasCourse extends CanvasCourseNew {
     this.uuid = apiresponse.uuid
     this.account_id = apiresponse.account_id
     this.root_account_id = apiresponse.root_account_id
-    this.created_at = apiresponse.created_at
+    this.created_at = new Date(apiresponse.created_at)
+    this.start_at = toDate(apiresponse.start_at)
+    this.end_at = toDate(apiresponse.end_at)
     this.locale = apiresponse.locale
     this.sis_import_id = apiresponse.sis_import_id
     this.workflow_state = apiresponse.workflow_state
@@ -115,10 +118,10 @@ export class CanvasCourse extends CanvasCourseNew {
     this.total_students = apiresponse.total_students
     this.needs_grading_count = apiresponse.needs_grading_count
     this.enrollments = apiresponse.enrollments
-    this.sections = apiresponse.sections
+    this.sections = apiresponse.sections?.map((s: any) => new CanvasSection(s))
     this.syllabus_body = apiresponse.syllabus_body
     this.public_description = apiresponse.public_description
-    this.term = apiresponse.term
+    if (apiresponse.term) this.term = new CanvasEnrollmentTerm(apiresponse.term)
     this.concluded = apiresponse.concluded
   }
 

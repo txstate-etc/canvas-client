@@ -1,4 +1,5 @@
 import type { SISSectionID, CanvasID } from './index.js'
+import { toDate } from '../utils/utils.js'
 
 export interface ICanvasSectionNew {
   name: string
@@ -22,13 +23,22 @@ export class CanvasSectionNew {
   }
 }
 
-export interface CanvasSection extends CanvasSectionNew {
+interface ICanvasSection extends ICanvasSectionNew {
   id: CanvasID
   course_id: CanvasID
   created_at: Date
   nonxlist_course_id: any
   integration_id: string | null
   sis_import_id: string | null
+}
+export interface CanvasSection extends ICanvasSection {}
+export class CanvasSection {
+  constructor (apiresponse: ICanvasSection) {
+    Object.assign(this, apiresponse)
+    this.created_at = new Date(apiresponse.created_at)
+    this.start_at = toDate(apiresponse.start_at)
+    this.end_at = toDate(apiresponse.end_at)
+  }
 }
 
 export class CanvasSectionPayload {

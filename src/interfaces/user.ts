@@ -1,4 +1,5 @@
 import type { CanvasID, SISUserID } from './index.js'
+import { toDate } from '../utils/utils.js'
 
 interface ICanvasUser {
   id: CanvasID
@@ -13,7 +14,8 @@ interface ICanvasUser {
   email: string
   locale: string
   effective_locale: string
-  last_login: Date
+  // only present when requested with include[]=last_login
+  last_login?: Date
   time_zone: string
   bio: string | null
 }
@@ -22,6 +24,7 @@ export class CanvasUser {
   constructor (apiresponse: ICanvasUser) {
     Object.assign(this, apiresponse)
     this.locale = this.locale || this.effective_locale
+    this.last_login = toDate(apiresponse.last_login)
   }
 }
 

@@ -1,8 +1,8 @@
 import { pLimit, omit, isNotEmpty } from 'txstate-utils'
-import { type CanvasAccount, CanvasCourse, type CanvasSection, type CanvasEnrollment, type CanvasEnrollmentPayload, type CanvasCoursePayload, CanvasSectionPayload, type CanvasGradingStandard, type CanvasIDInput, type SpecialUserID, type SpecialSectionID, type SISSectionID, type SISUserID, type SpecialCourseID, type SISTermID, type SpecialTermID, CanvasEnrollmentTerm, type CanvasCourseParams, type CanvasEnrollmentParams, type CanvasCourseSettings, type CanvasCourseSettingsUpdate, type CanvasUserUpdatePayload, type CanvasCourseListFilters, type ICanvasEnrollmentTerm, type CanvasEnrollmentTermPayload, type CanvasEnrollmentTermParams, CanvasCourseIncludes, type CanvasCourseUsersParams, CanvasUser, CanvasAssignment, type CanvasAssignmentNew, type CanvasAssignmentSubmission, type CanvasAssignmentSubmissionNew, type UserDisplay } from './interfaces/index.js'
+import { type CanvasAccount, CanvasCourse, CanvasSection, type CanvasEnrollment, type CanvasEnrollmentPayload, type CanvasCoursePayload, CanvasSectionPayload, type CanvasGradingStandard, type CanvasIDInput, type SpecialUserID, type SpecialSectionID, type SISSectionID, type SISUserID, type SpecialCourseID, type SISTermID, type SpecialTermID, CanvasEnrollmentTerm, type CanvasCourseParams, type CanvasEnrollmentParams, CanvasCourseSettings, type CanvasCourseSettingsUpdate, type CanvasUserUpdatePayload, type CanvasCourseListFilters, type ICanvasEnrollmentTerm, type CanvasEnrollmentTermPayload, type CanvasEnrollmentTermParams, CanvasCourseIncludes, type CanvasCourseUsersParams, CanvasUser, CanvasAssignment, type CanvasAssignmentNew, CanvasAssignmentSubmission, type CanvasAssignmentSubmissionNew, type UserDisplay } from './interfaces/index.js'
 import { stringifyParams, throwUnlessValidId, throwUnlessValidUserId } from './utils/utils.js'
-import { type ExternalTool, type ExternalToolPayload } from './interfaces/externaltool.js'
-import { GraphQLError } from './utils/errors.js'
+import { ExternalTool, type ExternalToolPayload } from './interfaces/externaltool.js'
+import { CanvasAPIError, GraphQLError } from './utils/errors.js'
 import { parseLinkHeader } from './utils/parselink.js'
 export class CanvasConnector {
   private rateLimit = pLimit(10)
@@ -18,13 +18,18 @@ export class CanvasConnector {
     }
   }
 
-  async send (method: 'get' | 'post' | 'put' | 'delete' | 'head', url: string, payload: any = {}) {
+  private requireRestUrl () {
     if (this.restUrl == null) throw new Error('Tried to contact Canvas API but no URL was set for canvas.')
+    return this.restUrl
+  }
+
+  async send (method: 'get' | 'post' | 'put' | 'delete' | 'head', url: string, payload: any = {}) {
+    const restUrl = this.requireRestUrl()
     let finalUrl: URL
     try {
       finalUrl = new URL(url) // URL was complete, use it
     } catch {
-      finalUrl = new URL('/api/v1/' + url.replace(/^\//, ''), this.restUrl)
+      finalUrl = new URL('/api/v1/' + url.replace(/^\//, ''), restUrl)
     }
     const isPostOrPut = ['post', 'put'].includes(method)
     if (!isPostOrPut && isNotEmpty(payload)) finalUrl.search = stringifyParams(payload)
@@ -37,7 +42,12 @@ export class CanvasConnector {
       },
       body: isPostOrPut && payload ? JSON.stringify(payload) : undefined
     })
-    if (!resp.ok) throw new Error(await resp.text() || resp.statusText)
+    if (!resp.ok) {
+      const text = await resp.text()
+      let body: any = text
+      try { body = JSON.parse(text) } catch { /* not JSON, keep the text */ }
+      throw new CanvasAPIError(text || resp.statusText, resp.status, method, finalUrl.toString(), body)
+    }
     if (method !== 'head') (resp as any).data = await resp.json()
     return resp as Response & { data?: any }
   }
@@ -95,13 +105,14 @@ export class CanvasConnector {
         const res = await this.send('head', url)
         return res.ok
       } catch (e) {
-        return false
+        if (e instanceof CanvasAPIError && e.status === 404) return false
+        throw e
       }
     })
   }
 
-  async graphql (query: string, variables: any) {
-    const res = await this.post(this.canvasUrl + '/api/graphql', { query, variables })
+  async graphql (query: string, variables?: any) {
+    const res = await this.post(new URL('/api/graphql', this.requireRestUrl()).toString(), { query, variables })
     if (res.errors?.length) throw new GraphQLError(res.errors[0].message, res.errors)
     return res.data
   }
@@ -148,7 +159,7 @@ export class CanvasAPI {
     return await this.getConnector().head(url)
   }
 
-  async graphql <ResponseType = any> (query: string, variables: any) {
+  async graphql <ResponseType = any> (query: string, variables?: any) {
     return await this.getConnector().graphql(query, variables) as ResponseType
   }
 
@@ -192,15 +203,15 @@ export class CanvasAPI {
 
   public async createCourse (accountId: CanvasIDInput, coursePayload: CanvasCoursePayload): Promise<CanvasCourse> {
     if (!coursePayload.course.time_zone) coursePayload.course.time_zone = this.defaultCourseTimeZone
-    return await this.post(`/accounts/${accountId}/courses`, coursePayload)
+    return new CanvasCourse(await this.post(`/accounts/${accountId}/courses`, coursePayload))
   }
 
   public async updateCourse (courseId: CanvasIDInput, coursePayload: CanvasCoursePayload): Promise<CanvasCourse> {
-    return await this.put(`/courses/${courseId}`, coursePayload)
+    return new CanvasCourse(await this.put(`/courses/${courseId}`, coursePayload))
   }
 
   public async updateCourseSettings (courseId: CanvasIDInput, params: CanvasCourseSettingsUpdate): Promise<CanvasCourseSettings> {
-    return await this.put(`/courses/${courseId}/settings`, params)
+    return new CanvasCourseSettings(await this.put(`/courses/${courseId}/settings`, params))
   }
 
   public async deleteCourse (courseId: CanvasIDInput) {
@@ -244,17 +255,17 @@ export class CanvasAPI {
 
   // ASSIGNMENT SUBMISSIONS (GRADES)
   public async getAssignmentSubmissions (courseId: CanvasIDInput, assignmentId: CanvasIDInput): Promise<CanvasAssignmentSubmission[]> {
-    return await this.getall(`/courses/${courseId}/assignments/${assignmentId}/submissions`)
+    return (await this.getall(`/courses/${courseId}/assignments/${assignmentId}/submissions`)).map(s => new CanvasAssignmentSubmission(s))
   }
 
   public async getAssignmentSubmission (courseId: CanvasIDInput, assignmentId: CanvasIDInput, userId: CanvasIDInput): Promise<CanvasAssignmentSubmission> {
-    return await this.get(`/courses/${courseId}/assignments/${assignmentId}/submissions/${userId}`)
+    return new CanvasAssignmentSubmission(await this.get(`/courses/${courseId}/assignments/${assignmentId}/submissions/${userId}`))
   }
 
   public async updateAssignmentSubmission (submission: CanvasAssignmentSubmissionNew): Promise<CanvasAssignmentSubmission> {
-    return await this.put(
+    return new CanvasAssignmentSubmission(await this.put(
       `/courses/${submission.course_id}/assignments/${submission.assignment_id}/submissions/${submission.user_id}`,
-      { submission })
+      { submission }))
   }
 
   // GRADING STANDARDS
@@ -267,12 +278,12 @@ export class CanvasAPI {
   // SECTIONS
   public async courseSections (courseId?: CanvasIDInput): Promise<CanvasSection[]> {
     if (!courseId) return []
-    return await this.getall(`/courses/${courseId}/sections`)
+    return (await this.getall(`/courses/${courseId}/sections`)).map(s => new CanvasSection(s))
   }
 
   public async getSection (id: CanvasIDInput | SpecialSectionID): Promise<CanvasSection> {
     throwUnlessValidId(id, 'sis_section_id')
-    return await this.get(`/sections/${id}`)
+    return new CanvasSection(await this.get(`/sections/${id}`))
   }
 
   public async getSectionBySIS (sisId: SISSectionID) {
@@ -285,7 +296,7 @@ export class CanvasAPI {
   }
 
   public async createSection (courseId: CanvasIDInput, sectionPayload: CanvasSectionPayload): Promise<CanvasSection> {
-    return await this.post(`/courses/${courseId}/sections`, sectionPayload)
+    return new CanvasSection(await this.post(`/courses/${courseId}/sections`, sectionPayload))
   }
 
   public async createSections (courseId: CanvasIDInput, sectionPayloads: CanvasSectionPayload[]): Promise<CanvasSection[]> {
@@ -297,7 +308,7 @@ export class CanvasAPI {
     const enrollments = await this.getSectionEnrollments(id)
     await Promise.all(enrollments.map(enrollment => this.deleteEnrollmentFromSection(enrollment)))
     const canvasSectionId = await this.removeSISFromSection(id).then(res => res.id)
-    return await this.delete(`/sections/${canvasSectionId}`)
+    return new CanvasSection(await this.delete(`/sections/${canvasSectionId}`))
   }
 
   public async deleteSectionBySIS (sisId: SISSectionID) {
@@ -306,7 +317,7 @@ export class CanvasAPI {
 
   public async removeSISFromSection (id: CanvasIDInput | SpecialSectionID): Promise<CanvasSection> {
     throwUnlessValidId(id, 'sis_section_id')
-    return await this.put(`/sections/${id}`, CanvasSectionPayload.asVoidSISSectionId())
+    return new CanvasSection(await this.put(`/sections/${id}`, CanvasSectionPayload.asVoidSISSectionId()))
   }
 
   public async removeSISFromSectionBySIS (sisId: SISSectionID) {
@@ -336,11 +347,8 @@ export class CanvasAPI {
 
   // ENROLLMENTS
   private enrollmentParams (filters?: CanvasEnrollmentParams) {
-    const params: any = filters
-    if (filters?.roles?.length) {
-      params.role = filters.roles
-    }
-    if (filters?.user_id) params.user_id = filters.user_id
+    const { roles, ...params }: Record<string, any> = filters ?? {}
+    if (roles?.length) params.role = roles
     return params
   }
 
@@ -393,7 +401,7 @@ export class CanvasAPI {
   public async getEnrollmentTermCurrent (forDate = new Date()) {
     const terms = await this.getEnrollmentTerms()
     for (const term of terms) {
-      if (term.start_at < forDate && term.end_at > forDate) return term
+      if (term.start_at && term.end_at && term.start_at < forDate && term.end_at > forDate) return term
     }
     return undefined
   }
@@ -416,28 +424,28 @@ export class CanvasAPI {
   // User
   public async getUser (id?: CanvasIDInput | SpecialUserID) {
     id && throwUnlessValidUserId(id)
-    return await this.get(`/users/${id ?? 'self'}`) as CanvasUser
+    return new CanvasUser(await this.get(`/users/${id ?? 'self'}`))
   }
 
   public async updateUser (id: CanvasIDInput | SpecialUserID | 'self', payload: CanvasUserUpdatePayload) {
     throwUnlessValidUserId(id)
-    return await this.put(`/users/${id}`, payload)
+    return new CanvasUser(await this.put(`/users/${id}`, payload))
   }
 
   // External Tools
   public async getExternalTools (accountId?: CanvasIDInput): Promise<ExternalTool[]> {
     accountId ??= (await this.getRootAccount()).id
     if (!accountId) return []
-    return await this.getall(`/accounts/${accountId}/external_tools`)
+    return (await this.getall(`/accounts/${accountId}/external_tools`)).map(t => new ExternalTool(t))
   }
 
   public async createExternalTool (accountId: CanvasIDInput | undefined, externalToolPayload: ExternalToolPayload): Promise<ExternalTool> {
     accountId ??= (await this.getRootAccount()).id
     if (!accountId) throw new Error('Tried to create an external tool with no account ID and root account could not be determined.')
-    return await this.post(`/accounts/${accountId}/external_tools`, externalToolPayload)
+    return new ExternalTool(await this.post(`/accounts/${accountId}/external_tools`, externalToolPayload))
   }
 
   public async editExternalTool (accountId: CanvasIDInput, toolId: CanvasIDInput, externalToolPayload: Partial<ExternalToolPayload>): Promise<ExternalTool> {
-    return await this.put(`/accounts/${accountId}/external_tools/${toolId}`, externalToolPayload)
+    return new ExternalTool(await this.put(`/accounts/${accountId}/external_tools/${toolId}`, externalToolPayload))
   }
 }

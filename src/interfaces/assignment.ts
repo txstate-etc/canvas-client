@@ -1,4 +1,5 @@
 import type { CanvasID, CanvasIDInput } from './index.js'
+import { toDate } from '../utils/utils.js'
 
 export enum CanvasAssignmentSubmissionType {
   discussion_topic = 'discussion_topic',
@@ -102,7 +103,7 @@ interface ICanvasAssignment extends CanvasAssignmentNew {
   due_date_required: boolean
   max_name_length: number
   peer_review_count: number
-  peer_reviews_assign_at: Date
+  peer_reviews_assign_at?: Date
   intra_group_peer_reviews: boolean
   needs_grading_count: number
   has_submitted_submissions: boolean
@@ -121,9 +122,10 @@ export class CanvasAssignment {
     Object.assign(this, assn)
     this.created_at = new Date(assn.created_at)
     this.updated_at = new Date(assn.updated_at)
-    if (assn.due_at) this.due_at = new Date(assn.due_at)
-    if (assn.unlock_at) this.unlock_at = new Date(assn.unlock_at)
-    if (assn.lock_at) this.lock_at = new Date(assn.lock_at)
+    this.due_at = toDate(assn.due_at)
+    this.unlock_at = toDate(assn.unlock_at)
+    this.lock_at = toDate(assn.lock_at)
+    this.peer_reviews_assign_at = toDate(assn.peer_reviews_assign_at)
   }
 }
 export interface CanvasAssignmentSubmissionNew {
@@ -135,20 +137,28 @@ export interface CanvasAssignmentSubmissionNew {
   late_policy_status?: CanvasLatePolicyType
   seconds_late_override?: number
 }
-export interface CanvasAssignmentSubmission extends CanvasAssignmentSubmissionNew {
+interface ICanvasAssignmentSubmission extends CanvasAssignmentSubmissionNew {
   id: CanvasID
   course_id: CanvasID
   assignment_id: CanvasID
   user_id: CanvasID
   grade_matches_current_submission: boolean
   workflow_state: CanvasAssignmentSubmissionWorkflowState
-  posted_at: Date
+  posted_at?: Date
   grader_id: CanvasID
   preview_url: string
   score: number
-  graded_at: Date
+  graded_at?: Date
   entered_score: number
   entered_grade: string
   grade: string
   attempt?: string
+}
+export interface CanvasAssignmentSubmission extends ICanvasAssignmentSubmission {}
+export class CanvasAssignmentSubmission {
+  constructor (submission: ICanvasAssignmentSubmission) {
+    Object.assign(this, submission)
+    this.posted_at = toDate(submission.posted_at)
+    this.graded_at = toDate(submission.graded_at)
+  }
 }

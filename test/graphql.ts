@@ -44,7 +44,7 @@ describe('graphql', () => {
         __args: { id: '1042050' },
         _id: true,
         name: true,
-        usersConnection: { nodes: { _id: true, name: true } }
+        usersConnection: { __args: {}, nodes: { _id: true, name: true } }
       }
     })
     expect(course?._id).to.equal('1042050')

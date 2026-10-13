@@ -14,6 +14,7 @@ describe('courses', function () {
     const courses = await canvasAPI.getUserCourses('self', { roles: [CanvasEnrollmentShortType.teacher] })
     expect(courses).to.have.length.greaterThan(0)
     selfcourse = courses[0]
+    expect(selfcourse.created_at).to.be.a('date')
     for (const course of courses) {
       expect(course.enrollments).to.have.length.greaterThan(0)
       expect((course.enrollments ?? []).map(e => e.type)).to.include(CanvasEnrollmentShortType.teacher)
@@ -24,6 +25,14 @@ describe('courses', function () {
     for (const course of courses) {
       expect(course.workflow_state).to.not.equal(CanvasCourseState.Deleted)
     }
+  })
+  it('should return dates on course sections', async () => {
+    const sections = await canvasAPI.courseSections(selfcourse.id)
+    expect(sections).to.have.length.greaterThan(0)
+    expect(sections[0].created_at).to.be.a('date')
+  })
+  it('should report that a nonexistent section does not exist', async () => {
+    expect(await canvasAPI.sectionExistsBySIS('this-section-does-not-exist')).to.equal(false)
   })
   it('should retrieve course users', async () => {
     const users = await canvasAPI.getCourseUsers(selfcourse.id)
