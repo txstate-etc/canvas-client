@@ -34,18 +34,28 @@ export enum CanvasLatePolicyType {
   missing = 'missing',
   none = 'none'
 }
+export interface CanvasAssignmentOverrideNew {
+  student_ids?: CanvasIDInput[]
+  group_id?: CanvasIDInput
+  course_section_id?: CanvasIDInput
+  title?: string
+  due_at?: Date | string
+  unlock_at?: Date | string
+  lock_at?: Date | string
+}
 export interface CanvasAssignmentOverride {
   id: CanvasID
   assignment_id: CanvasID
-  student_ids: CanvasID[]
-  group_id: CanvasID
-  course_section_id: CanvasID
+  student_ids?: CanvasID[]
+  group_id?: CanvasID
+  course_section_id?: CanvasID
   title: string
-  due_at: Date | string
-  all_day: boolean
-  all_day_date: string
-  unlock_at: Date | string
-  lock_at: Date | string
+  due_at?: Date
+  all_day?: boolean
+  // a calendar date like "2026-10-13", not a point in time
+  all_day_date?: string
+  unlock_at?: Date
+  lock_at?: Date
 }
 export interface CanvasAssignmentNew {
   name: string
@@ -65,12 +75,12 @@ export interface CanvasAssignmentNew {
   external_tool_tag_attributes?: { [keys: string]: any }
   points_possible?: number
   grading_type?: CanvasAssignmentGradingType
-  due_at?: Date
-  lock_at?: Date
-  unlock_at?: Date
+  due_at?: Date | string
+  lock_at?: Date | string
+  unlock_at?: Date | string
   description?: string
   assignment_group_id?: CanvasIDInput
-  assignment_overrides?: CanvasAssignmentOverride[]
+  assignment_overrides?: CanvasAssignmentOverrideNew[]
   only_visible_to_overrides?: boolean
   published?: boolean
   grading_standard_id?: CanvasIDInput
@@ -86,7 +96,11 @@ export interface CanvasAssignmentNew {
   allowed_attempts?: number
   annotatable_attachment_id?: CanvasIDInput
 }
-interface ICanvasAssignment extends CanvasAssignmentNew {
+interface ICanvasAssignment extends Omit<CanvasAssignmentNew, 'assignment_overrides' | 'due_at' | 'lock_at' | 'unlock_at'> {
+  assignment_overrides?: CanvasAssignmentOverride[]
+  due_at?: Date
+  lock_at?: Date
+  unlock_at?: Date
   submission_types: CanvasAssignmentSubmissionType[]
   id: CanvasID
   created_at: Date
@@ -126,6 +140,12 @@ export class CanvasAssignment {
     this.unlock_at = toDate(assn.unlock_at)
     this.lock_at = toDate(assn.lock_at)
     this.peer_reviews_assign_at = toDate(assn.peer_reviews_assign_at)
+    this.assignment_overrides = assn.assignment_overrides?.map(o => ({
+      ...o,
+      due_at: toDate(o.due_at),
+      unlock_at: toDate(o.unlock_at),
+      lock_at: toDate(o.lock_at)
+    }))
   }
 }
 export interface CanvasAssignmentSubmissionNew {

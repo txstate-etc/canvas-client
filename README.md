@@ -83,6 +83,8 @@ Anywhere you pass an id into the client, a number is still accepted (the `Canvas
 
 Dates in responses are now always `Date` objects. Before, the types promised `Date` everywhere but only a few methods actually converted, so you might have been calling `new Date()` on something that was already a string. A date Canvas leaves empty is now `undefined` instead of `null`, which matters most for enrollment terms: the Default Term used to come back with a `start_at` of January 1, 1970, and now it comes back `undefined`. Dates you pass in query params (like `starts_before`) are now sent as ISO strings, before they were silently dropped.
 
+That includes overrides. Assignment overrides used to come back with string dates, and term overrides were typed `Date | null` but were actually strings too. Both are `Date` or `undefined` now. To make that possible, the types you send and the types you get back are separate: building an assignment takes `CanvasAssignmentOverrideNew`, building a term takes `CanvasEnrollmentTermOverrideNew`, and `CanvasAssignmentOverride` and `CanvasEnrollmentTermOverride` only describe responses. Anywhere you hand a date to an assignment or term, a `Date` or an ISO string will do. Term `overrides` also stopped pretending every enrollment type is present, since Canvas only returns the ones that have an override.
+
 When Canvas responds with an error, you now get a `CanvasAPIError` with `status`, `method`, `url`, and `body` (parsed JSON when Canvas sent JSON), so you can tell a 404 from a 401 without parsing the message:
 ```typescript
 try {
