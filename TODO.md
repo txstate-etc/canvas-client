@@ -7,7 +7,6 @@ None of these are breaking, so they can land in any 3.x release.
 - Request timeout via `AbortSignal.timeout` in `send`, so a hung Canvas connection doesn't hold a rate-limit slot forever. Make it configurable in `CanvasAPIOptions`.
 - Automatic retry with backoff when Canvas returns 403 "Rate Limit Exceeded" (check the `X-Rate-Limit-Remaining` header). `CanvasAPIError.status` makes this easy to detect.
 - `index.ts` creates the `canvasAPI` singleton from env vars at import time, which doesn't fit `"sideEffects": false` in package.json. Decide whether that's acceptable or whether to make it lazy.
-- Responses that still aren't typed or converted: `createEnrollment` returns `any`, and `CanvasEnrollment` doesn't declare Canvas's date fields (`created_at`, `updated_at`, `last_activity_at`, etc.).
 
 ## genql `__args` quirk
 

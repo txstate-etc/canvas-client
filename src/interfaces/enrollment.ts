@@ -1,10 +1,13 @@
 import type { CanvasID, CanvasIDInput, SpecialUserID, SpecialSectionID, SISCourseID } from './index.js'
+import { toDate } from '../utils/utils.js'
 
 export enum CanvasEnrollmentState {
   Active = 'active',
   Invited = 'invited',
   Inactive = 'inactive'
 }
+// Canvas reports these in responses, but only CanvasEnrollmentState values can be set when creating an enrollment
+export type CanvasEnrollmentResponseState = CanvasEnrollmentState | 'completed' | 'deleted' | 'rejected' | 'creation_pending'
 export enum CanvasEnrollmentType {
   Teacher = 'TeacherEnrollment',
   Student = 'StudentEnrollment',
@@ -50,7 +53,8 @@ export class CanvasEnrollmentNew {
   }
 }
 
-export interface CanvasEnrollment extends CanvasEnrollmentNew {
+interface ICanvasEnrollment extends Omit<ICanvasEnrollmentNew, 'enrollment_state'> {
+  enrollment_state: CanvasEnrollmentResponseState
   id: CanvasID
   user_id: CanvasID
   associated_user_id?: CanvasID
@@ -60,6 +64,27 @@ export interface CanvasEnrollment extends CanvasEnrollmentNew {
   course_integration_id: string | null
   course_section_id: CanvasID
   section_integration_id: string | null
+  created_at: Date
+  updated_at: Date
+  // only set when the enrollment has its own dates, which is rare
+  start_at?: Date
+  end_at?: Date
+  last_activity_at?: Date
+  last_attended_at?: Date
+  // in seconds
+  total_activity_time?: number
+}
+export interface CanvasEnrollment extends ICanvasEnrollment {}
+export class CanvasEnrollment {
+  constructor (apiresponse: ICanvasEnrollment) {
+    Object.assign(this, apiresponse)
+    this.created_at = new Date(apiresponse.created_at)
+    this.updated_at = new Date(apiresponse.updated_at)
+    this.start_at = toDate(apiresponse.start_at)
+    this.end_at = toDate(apiresponse.end_at)
+    this.last_activity_at = toDate(apiresponse.last_activity_at)
+    this.last_attended_at = toDate(apiresponse.last_attended_at)
+  }
 }
 
 export interface CanvasEnrollmentDisplay {
@@ -67,7 +92,7 @@ export interface CanvasEnrollmentDisplay {
   role: string
   role_id: CanvasID
   user_id: CanvasID
-  enrollment_state: CanvasEnrollmentState
+  enrollment_state: CanvasEnrollmentResponseState
 }
 
 export class CanvasEnrollmentPayload {

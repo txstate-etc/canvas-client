@@ -11,6 +11,8 @@ describe('enrollments', function () {
     for (const enrollment of enrollments) {
       expect(enrollment.id).to.match(/^[1-9][0-9]*$/)
       expect(enrollment.course_id).to.equal(courseId)
+      expect(enrollment.created_at).to.be.instanceOf(Date)
+      expect(enrollment.updated_at).to.be.instanceOf(Date)
     }
   })
   it('should retrieve more than 100 enrollments from a section', { timeout: 30000 }, async () => {
