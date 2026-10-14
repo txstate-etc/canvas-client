@@ -12,6 +12,12 @@ Canvas rate-limits incoming requests to about 20 simultaneous requests per accou
 * Support multiple tokens (each MUST come from a separate user account) and load-balance requests across the tokens. This increases your total capacity.
   * Note that if you run multiple instances, you STILL want to reduce the max simultaneous requests per token, to avoid getting errors when you have a backlog of requests overwhelming the capacity of your tokens.
 
+A slow or hung request holds its slot until it finishes, so you can also set a `requestTimeout` in milliseconds. Requests that take longer fail with a `TimeoutError`. Node's fetch already gives up after 5 minutes without hearing from the server, but that's a long time to tie up a slot, and browsers don't time out on their own at all.
+```typescript
+const canvas = new CanvasAPI(canvasUrl, tokens, { maxConnections: 10, requestTimeout: 60000 })
+```
+The prebuilt `canvasAPI` export reads it from the `CANVAS_REQUEST_TIMEOUT` environment variable, alongside `CANVAS_CONN_PER_TOKEN` for the connection limit.
+
 ## GraphQL
 Canvas has a GraphQL API that is often far more efficient than REST, since one request can pull a course, its sections, users, and enrollments. GraphQL requests get the same token splitting and rate limiting as RESTful requests, sharing the same tokens and limits.
 

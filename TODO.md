@@ -4,7 +4,6 @@ None of these are breaking, so they can land in any 3.x release.
 
 ## Nice-to-haves
 
-- Request timeout via `AbortSignal.timeout` in `send`, so a hung Canvas connection doesn't hold a rate-limit slot forever. Make it configurable in `CanvasAPIOptions`.
 - Automatic retry with backoff when Canvas returns 403 "Rate Limit Exceeded" (check the `X-Rate-Limit-Remaining` header). `CanvasAPIError.status` makes this easy to detect.
 
 ## genql `__args` quirk

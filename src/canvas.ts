@@ -7,10 +7,12 @@ import { parseLinkHeader } from './utils/parselink.js'
 export class CanvasConnector {
   private rateLimit = pLimit(10)
   private restUrl: URL | undefined
+  private requestTimeout: number | undefined
 
   constructor (protected canvasUrl?: string, protected token?: string, options: CanvasAPIOptions = {}) {
     const maxConnections = options.maxConnections ?? 10
     this.rateLimit = pLimit(maxConnections)
+    this.requestTimeout = options.requestTimeout
     try {
       this.restUrl = new URL('/api/v1', canvasUrl)
     } catch {
@@ -40,7 +42,8 @@ export class CanvasConnector {
         Accept: 'application/json+canvas-string-ids',
         'Content-Type': 'application/json'
       },
-      body: isPostOrPut && payload ? JSON.stringify(payload) : undefined
+      body: isPostOrPut && payload ? JSON.stringify(payload) : undefined,
+      signal: this.requestTimeout ? AbortSignal.timeout(this.requestTimeout) : undefined
     })
     if (!resp.ok) {
       const text = await resp.text()
@@ -122,6 +125,12 @@ export class CanvasConnector {
 
 interface CanvasAPIOptions {
   maxConnections?: number
+  /**
+   * Milliseconds to wait for a request to finish, including reading the response body, before
+   * giving up with a TimeoutError. Time spent waiting for a rate-limit slot doesn't count. By
+   * default there is no limit beyond whatever the runtime's fetch enforces on its own.
+   */
+  requestTimeout?: number
 }
 
 export class CanvasAPI {
