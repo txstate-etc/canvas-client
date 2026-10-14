@@ -1,18 +1,41 @@
-import { pLimit, omit, isNotEmpty } from 'txstate-utils'
+import { pLimit, omit, isNotEmpty, sleep } from 'txstate-utils'
 import { type CanvasAccount, CanvasCourse, CanvasSection, CanvasEnrollment, type CanvasEnrollmentPayload, type CanvasCoursePayload, CanvasSectionPayload, type CanvasGradingStandard, type CanvasIDInput, type SpecialUserID, type SpecialSectionID, type SISSectionID, type SISUserID, type SpecialCourseID, type SISTermID, type SpecialTermID, CanvasEnrollmentTerm, type CanvasCourseParams, type CanvasEnrollmentParams, CanvasCourseSettings, type CanvasCourseSettingsUpdate, type CanvasUserUpdatePayload, type CanvasCourseListFilters, type ICanvasEnrollmentTerm, type CanvasEnrollmentTermPayload, type CanvasEnrollmentTermParams, CanvasCourseIncludes, type CanvasCourseUsersParams, CanvasUser, CanvasAssignment, type CanvasAssignmentNew, CanvasAssignmentSubmission, type CanvasAssignmentSubmissionNew, type UserDisplay } from './interfaces/index.js'
 import { stringifyParams, throwUnlessValidId, throwUnlessValidUserId } from './utils/utils.js'
 import { ExternalTool, type ExternalToolPayload } from './interfaces/externaltool.js'
 import { CanvasAPIError, GraphQLError } from './utils/errors.js'
 import { parseLinkHeader } from './utils/parselink.js'
+/**
+ * Canvas reports throttling as a 403 with "Rate Limit Exceeded" in the body. HEAD responses have no
+ * body, so for those we fall back to the X-Rate-Limit-Remaining header having hit zero.
+ */
+function isRateLimited (resp: Response, text: string) {
+  if (resp.status === 429) return true
+  if (resp.status !== 403) return false
+  if (/rate limit exceeded/i.test(text)) return true
+  const remaining = resp.headers.get('x-rate-limit-remaining')
+  return remaining != null && Number(remaining) <= 0
+}
+
+// Honor Retry-After if Canvas ever sends it, otherwise exponential backoff starting around half a
+// second, with jitter so a burst of throttled requests doesn't come back in lockstep.
+function retryDelay (resp: Response, attempt: number) {
+  const retryAfter = Number(resp.headers.get('retry-after'))
+  if (retryAfter > 0) return retryAfter * 1000
+  const delay = 500 * 2 ** attempt
+  return delay / 2 + Math.random() * delay / 2
+}
+
 export class CanvasConnector {
   private rateLimit = pLimit(10)
   private restUrl: URL | undefined
   private requestTimeout: number | undefined
+  private rateLimitRetries: number
 
   constructor (protected canvasUrl?: string, protected token?: string, options: CanvasAPIOptions = {}) {
     const maxConnections = options.maxConnections ?? 10
     this.rateLimit = pLimit(maxConnections)
     this.requestTimeout = options.requestTimeout
+    this.rateLimitRetries = options.rateLimitRetries ?? 5
     try {
       this.restUrl = new URL('/api/v1', canvasUrl)
     } catch {
@@ -35,24 +58,30 @@ export class CanvasConnector {
     }
     const isPostOrPut = ['post', 'put'].includes(method)
     if (!isPostOrPut && isNotEmpty(payload)) finalUrl.search = stringifyParams(payload)
-    const resp = await fetch(finalUrl, {
-      method,
-      headers: {
-        ...(this.token ? { Authorization: 'Bearer ' + this.token } : {}),
-        Accept: 'application/json+canvas-string-ids',
-        'Content-Type': 'application/json'
-      },
-      body: isPostOrPut && payload ? JSON.stringify(payload) : undefined,
-      signal: this.requestTimeout ? AbortSignal.timeout(this.requestTimeout) : undefined
-    })
-    if (!resp.ok) {
-      const text = await resp.text()
-      let body: any = text
-      try { body = JSON.parse(text) } catch { /* not JSON, keep the text */ }
-      throw new CanvasAPIError(text || resp.statusText, resp.status, method, finalUrl.toString(), body)
+    for (let attempt = 0; ; attempt++) {
+      const resp = await fetch(finalUrl, {
+        method,
+        headers: {
+          ...(this.token ? { Authorization: 'Bearer ' + this.token } : {}),
+          Accept: 'application/json+canvas-string-ids',
+          'Content-Type': 'application/json'
+        },
+        body: isPostOrPut && payload ? JSON.stringify(payload) : undefined,
+        signal: this.requestTimeout ? AbortSignal.timeout(this.requestTimeout) : undefined
+      })
+      if (!resp.ok) {
+        const text = await resp.text()
+        if (attempt < this.rateLimitRetries && isRateLimited(resp, text)) {
+          await sleep(retryDelay(resp, attempt))
+          continue
+        }
+        let body: any = text
+        try { body = JSON.parse(text) } catch { /* not JSON, keep the text */ }
+        throw new CanvasAPIError(text || resp.statusText, resp.status, method, finalUrl.toString(), body)
+      }
+      if (method !== 'head') (resp as any).data = await resp.json()
+      return resp as Response & { data?: any }
     }
-    if (method !== 'head') (resp as any).data = await resp.json()
-    return resp as Response & { data?: any }
   }
 
   tasks () {
@@ -131,6 +160,12 @@ interface CanvasAPIOptions {
    * default there is no limit beyond whatever the runtime's fetch enforces on its own.
    */
   requestTimeout?: number
+  /**
+   * How many times to retry a request after Canvas says we've exceeded its rate limit, backing off
+   * exponentially from about half a second. The request keeps its rate-limit slot while it waits, so
+   * the rest of the queue on that token slows down too. Defaults to 5; set 0 to fail immediately.
+   */
+  rateLimitRetries?: number
 }
 
 export class CanvasAPI {

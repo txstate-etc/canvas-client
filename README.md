@@ -18,6 +18,8 @@ const canvas = new CanvasAPI(canvasUrl, tokens, { maxConnections: 10, requestTim
 ```
 The prebuilt `canvasAPI` export reads it from the `CANVAS_REQUEST_TIMEOUT` environment variable, alongside `CANVAS_CONN_PER_TOKEN` for the connection limit.
 
+If Canvas throttles you anyway (another app sharing the token, or a burst of expensive requests), the request waits and tries again, backing off exponentially from about half a second. It keeps its slot while it waits, so the rest of the queue on that token slows down with it. After 5 retries it gives up and throws the 403 as a `CanvasAPIError`. Set `rateLimitRetries` to change that, or to 0 to fail right away. The prebuilt `canvasAPI` reads it from `CANVAS_RATE_LIMIT_RETRIES`.
+
 ## GraphQL
 Canvas has a GraphQL API that is often far more efficient than REST, since one request can pull a course, its sections, users, and enrollments. GraphQL requests get the same token splitting and rate limiting as RESTful requests, sharing the same tokens and limits.
 
